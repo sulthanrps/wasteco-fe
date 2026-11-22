@@ -10,61 +10,55 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Explore
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.PersonOutline
+import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.ui.res.stringResource
-import com.example.wasteco.R
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.example.wasteco.R
+import com.example.wasteco.ui.components.WasteCoEntryBackButton
 import com.example.wasteco.ui.components.WasteCoPasswordField
 import com.example.wasteco.ui.components.WasteCoPrimaryButton
 import com.example.wasteco.ui.components.WasteCoTextField
-import com.example.wasteco.ui.theme.Elevation
-import com.example.wasteco.ui.theme.PrimaryLight
-import com.example.wasteco.ui.theme.PrimaryMain
+import com.example.wasteco.ui.theme.EntryColors
+import com.example.wasteco.ui.theme.EntryDimens
+import com.example.wasteco.ui.theme.EntryTypography
 import com.example.wasteco.ui.theme.Radius
 import com.example.wasteco.ui.theme.Spacing
 import com.example.wasteco.ui.theme.WasteCoTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     uiState: RegisterUiState,
@@ -81,286 +75,194 @@ fun RegisterScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Kembali",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        }
-    ) { innerPadding ->
+    Box(
+        modifier.fillMaxSize().background(EntryColors.background).statusBarsPadding().imePadding(),
+        contentAlignment = Alignment.TopCenter
+    ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+                .widthIn(max = EntryDimens.maxWidth)
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = Spacing.large, vertical = Spacing.small)
+                .padding(horizontal = EntryDimens.gutter, vertical = Spacing.compact)
         ) {
-            // Header Section
-            Text(
-                text = "Buat Akun WasteCo",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            WasteCoEntryBackButton(onClick = onBackClick)
+            Spacer(Modifier.height(Spacing.large))
+            Text(stringResource(R.string.auth_register_heading), style = EntryTypography.heading, color = EntryColors.heading)
+            Spacer(Modifier.height(Spacing.xs))
+            Text(stringResource(R.string.auth_register_description), style = EntryTypography.body, color = EntryColors.body)
+            Spacer(Modifier.height(Spacing.medium))
 
-            Spacer(modifier = Modifier.height(Spacing.small))
-
-            Text(
-                text = "Satu akun untuk mengolah bahan sisa dan meminta atau mendonasikan bahan pangan.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(Spacing.large))
-
-            // Field: Nama Lengkap
-            WasteCoTextField(
-                value = uiState.name,
-                onValueChange = onNameChange,
-                label = "Nama Lengkap",
-                placeholder = "Affan Maulana",
-                leadingIcon = Icons.Default.Person,
-                isError = uiState.nameError != null,
-                errorMessage = uiState.nameError
-            )
-
-            Spacer(modifier = Modifier.height(Spacing.medium))
-
-            // Field: Alamat Email
-            WasteCoTextField(
-                value = uiState.email,
-                onValueChange = onEmailChange,
-                label = "Alamat Email",
-                placeholder = "nama@email.com",
-                leadingIcon = Icons.Default.Email,
-                isError = uiState.emailError != null,
-                errorMessage = uiState.emailError
-            )
-
-            Spacer(modifier = Modifier.height(Spacing.medium))
-
-            // Field: Kata Sandi
-            WasteCoPasswordField(
-                value = uiState.password,
-                onValueChange = onPasswordChange,
-                label = "Kata Sandi",
-                placeholder = "Minimal 8 karakter",
-                leadingIcon = Icons.Default.Lock,
-                isError = uiState.passwordError != null,
-                errorMessage = uiState.passwordError
-            )
-
-            Spacer(modifier = Modifier.height(Spacing.medium))
-            androidx.compose.material3.OutlinedTextField(
-                value = uiState.phoneNumber,
-                onValueChange = onPhoneNumberChange,
-                label = { Text(stringResource(R.string.profile_phone)) },
-                supportingText = if (uiState.phoneNumberInvalid) {
-                    { Text(stringResource(R.string.register_invalid_phone)) }
-                } else null,
-                isError = uiState.phoneNumberInvalid,
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
-            )
-            Spacer(modifier = Modifier.height(Spacing.medium))
-
-            // Password strength validation indicator
-            Spacer(modifier = Modifier.height(Spacing.xs))
-            val isPassValid = uiState.isPasswordLengthValid && uiState.isPasswordCombinationValid
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = Spacing.xs)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clip(CircleShape)
-                        .background(if (isPassValid) PrimaryMain else MaterialTheme.colorScheme.outline),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = if (isPassValid) Icons.Default.Check else Icons.Default.Info,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(12.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(Spacing.small))
-                Text(
-                    text = "Gunakan minimal 8 karakter dengan kombinasi huruf & angka",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isPassValid) PrimaryMain else MaterialTheme.colorScheme.onSurfaceVariant
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
+                WasteCoTextField(
+                    value = uiState.name,
+                    onValueChange = onNameChange,
+                    label = stringResource(R.string.auth_full_name),
+                    placeholder = stringResource(R.string.auth_full_name_placeholder),
+                    leadingIcon = Icons.Outlined.PersonOutline,
+                    isError = uiState.nameError != null,
+                    errorMessage = uiState.nameError,
+                    filledStyle = true
                 )
-            }
-
-            Spacer(modifier = Modifier.height(Spacing.medium))
-
-            // Field: Konfirmasi Kata Sandi
-            WasteCoPasswordField(
-                value = uiState.confirmPassword,
-                onValueChange = onConfirmPasswordChange,
-                label = "Konfirmasi Kata Sandi",
-                placeholder = "Ulangi kata sandi",
-                leadingIcon = Icons.Default.Lock,
-                isError = uiState.confirmPasswordError != null,
-                errorMessage = uiState.confirmPasswordError
-            )
-
-            Spacer(modifier = Modifier.height(Spacing.medium))
-
-            // Field: Area Tinggal Umum
-            WasteCoTextField(
-                value = uiState.areaName,
-                onValueChange = onAreaNameChange,
-                label = "Lokasi Kamu (Area Umum)",
-                placeholder = "Dinoyo, Lowokwaru, Malang",
-                leadingIcon = Icons.Default.LocationOn,
-                trailingIcon = {
+                WasteCoTextField(
+                    value = uiState.email,
+                    onValueChange = onEmailChange,
+                    label = stringResource(R.string.auth_email),
+                    placeholder = stringResource(R.string.auth_email_placeholder),
+                    leadingIcon = Icons.Outlined.Email,
+                    isError = uiState.emailError != null,
+                    errorMessage = uiState.emailError,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    filledStyle = true
+                )
+                WasteCoTextField(
+                    value = uiState.phoneNumber,
+                    onValueChange = onPhoneNumberChange,
+                    label = stringResource(R.string.profile_phone),
+                    placeholder = stringResource(R.string.auth_phone_placeholder),
+                    leadingIcon = Icons.Outlined.Phone,
+                    isError = uiState.phoneNumberInvalid,
+                    errorMessage = if (uiState.phoneNumberInvalid) stringResource(R.string.register_invalid_phone) else null,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    filledStyle = true
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.small)) {
+                    WasteCoPasswordField(
+                        value = uiState.password,
+                        onValueChange = onPasswordChange,
+                        label = stringResource(R.string.auth_password),
+                        placeholder = stringResource(R.string.auth_password_minimum),
+                        leadingIcon = Icons.Outlined.Lock,
+                        isError = uiState.passwordError != null,
+                        errorMessage = uiState.passwordError,
+                        filledStyle = true
+                    )
+                    val validPassword = uiState.isPasswordLengthValid && uiState.isPasswordCombinationValid
+                    val hintColor = if (validPassword) EntryColors.action else EntryColors.warningInk
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clickable(enabled = !uiState.isLocating, onClick = onLocate)
-                            .padding(end = Spacing.small)
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.MyLocation,
-                            contentDescription = "Via GPS",
-                            tint = PrimaryMain,
-                            modifier = Modifier.size(18.dp)
+                            if (validPassword) Icons.Outlined.CheckCircle else Icons.Outlined.Info,
+                            contentDescription = null, tint = hintColor,
+                            modifier = Modifier.size(EntryDimens.compactLogo)
                         )
-                        Spacer(modifier = Modifier.width(Spacing.xxs))
+                        Text(stringResource(R.string.auth_password_hint),
+                            color = hintColor, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                WasteCoPasswordField(
+                    value = uiState.confirmPassword,
+                    onValueChange = onConfirmPasswordChange,
+                    label = stringResource(R.string.auth_confirm_password),
+                    placeholder = stringResource(R.string.auth_confirm_password_placeholder),
+                    leadingIcon = Icons.Outlined.Lock,
+                    isError = uiState.confirmPasswordError != null,
+                    errorMessage = uiState.confirmPasswordError,
+                    filledStyle = true
+                )
+                WasteCoTextField(
+                    value = uiState.areaName,
+                    onValueChange = onAreaNameChange,
+                    label = stringResource(R.string.auth_area),
+                    placeholder = stringResource(R.string.auth_area_placeholder),
+                    leadingIcon = Icons.Outlined.Explore,
+                    isError = uiState.areaNameError != null,
+                    errorMessage = uiState.areaNameError,
+                    filledStyle = true,
+                    labelAction = {
                         Text(
-                            text = stringResource(if (uiState.isLocating) R.string.profile_locating else R.string.profile_use_gps),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = PrimaryMain,
-                            fontWeight = FontWeight.SemiBold
+                            stringResource(if (uiState.isLocating) R.string.profile_locating else R.string.auth_gps),
+                            modifier = Modifier.clickable(
+                                enabled = !uiState.isLocating && !uiState.isLoading,
+                                role = Role.Button,
+                                onClick = onLocate
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = EntryColors.muted
+                        )
+                    }
+                )
+                if (uiState.locationError) {
+                    Text(stringResource(R.string.register_location_unavailable),
+                        color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+                Surface(
+                    modifier = Modifier.fillMaxWidth().toggleable(
+                        value = uiState.isAgreementChecked, role = Role.Checkbox,
+                        onValueChange = onAgreementChange
+                    ),
+                    shape = RoundedCornerShape(Radius.medium),
+                    color = EntryColors.surface
+                ) {
+                    Row(
+                        modifier = Modifier.padding(Spacing.compact),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.compact),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = uiState.isAgreementChecked,
+                            onCheckedChange = null,
+                            colors = CheckboxDefaults.colors(checkedColor = EntryColors.action)
+                        )
+                        val agreementStart = stringResource(R.string.auth_agreement_start)
+                        val agreementEmphasis = stringResource(R.string.auth_agreement_emphasis)
+                        val agreementEnd = stringResource(R.string.auth_agreement_end)
+                        Text(
+                            text = buildAnnotatedString {
+                                append(agreementStart)
+                                append(' ')
+                                withStyle(SpanStyle(color = EntryColors.action, fontWeight = FontWeight.SemiBold)) {
+                                    append(agreementEmphasis)
+                                }
+                                append(' ')
+                                append(agreementEnd)
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = EntryColors.heading
                         )
                     }
                 }
-            )
-
-            Spacer(modifier = Modifier.height(Spacing.large))
-
-            if (uiState.locationError) {
-                Text(stringResource(R.string.register_location_unavailable), color = MaterialTheme.colorScheme.error)
-            }
-
-            // Community Sharing Agreement Card
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onAgreementChange(!uiState.isAgreementChecked) },
-                shape = RoundedCornerShape(Radius.medium),
-                colors = CardDefaults.cardColors(containerColor = PrimaryLight),
-                elevation = CardDefaults.cardElevation(defaultElevation = Elevation.none)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(Spacing.medium),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = uiState.isAgreementChecked,
-                        onCheckedChange = onAgreementChange,
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = PrimaryMain,
-                            uncheckedColor = MaterialTheme.colorScheme.outline
-                        )
-                    )
-                    Spacer(modifier = Modifier.width(Spacing.small))
-                    Text(
-                        text = "Saya setuju dengan prinsip berbagi makanan yang aman, bersih, dan higienis di WasteCo.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Medium
-                    )
+                uiState.errorMessage?.let { message ->
+                    Text(message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 }
             }
-
-            if (!uiState.errorMessage.isNullOrEmpty()) {
-                Spacer(modifier = Modifier.height(Spacing.medium))
-                Text(
-                    text = uiState.errorMessage,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-
-            Spacer(modifier = Modifier.height(Spacing.xlarge))
-
-            // Button CTA Utama
+            Spacer(Modifier.height(Spacing.large))
             WasteCoPrimaryButton(
-                text = "Buat Akun",
+                text = stringResource(R.string.auth_create_account),
                 onClick = onRegisterClick,
+                enabled = uiState.isFormValid && !uiState.isLocating,
                 isLoading = uiState.isLoading,
-                trailingIcon = Icons.AutoMirrored.Filled.ArrowForward
+                trailingIcon = Icons.AutoMirrored.Filled.ArrowForward,
+                containerColor = EntryColors.action,
+                cornerRadius = Radius.medium,
+                iconSize = EntryDimens.buttonIcon
             )
-
-            Spacer(modifier = Modifier.height(Spacing.medium))
-
-            // Footer Link
+            Spacer(Modifier.height(Spacing.large))
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = Spacing.large),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val annotatedText = buildAnnotatedString {
-                    append("Sudah punya akun? ")
-                    withStyle(
-                        style = SpanStyle(
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    ) {
-                        append("Masuk")
-                    }
+                Text(stringResource(R.string.auth_existing_account), style = EntryTypography.body, color = EntryColors.body)
+                TextButton(onClick = onLoginClick) {
+                    Text(stringResource(R.string.auth_sign_in), color = EntryColors.action)
                 }
-                Text(
-                    text = annotatedText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.clickable { onLoginClick() }
-                )
             }
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, widthDp = 390, heightDp = 920)
 @Composable
 private fun RegisterScreenPreview() {
     WasteCoTheme {
         RegisterScreen(
-            uiState = RegisterUiState(),
-            onNameChange = {},
-            onEmailChange = {},
-            onPhoneNumberChange = {},
-            onPasswordChange = {},
-            onConfirmPasswordChange = {},
-            onAreaNameChange = {},
-            onLocate = {},
-            onAgreementChange = {},
-            onRegisterClick = {},
-            onLoginClick = {},
-            onBackClick = {}
+            uiState = RegisterUiState(name = "Affan Maulana", areaName = "Dinoyo, Lowokwaru, Malang"),
+            onNameChange = {}, onEmailChange = {}, onPhoneNumberChange = {},
+            onPasswordChange = {}, onConfirmPasswordChange = {}, onAreaNameChange = {},
+            onLocate = {}, onAgreementChange = {}, onRegisterClick = {}, onLoginClick = {}, onBackClick = {}
         )
     }
 }

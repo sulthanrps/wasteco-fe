@@ -38,3 +38,18 @@ val InfoBlue = Color(0xFF0EA5E9)
 val InfoContainer = Color(0xFFE7F6FD)
 val SuccessGreen = Color(0xFF3E8E41)
 val SuccessContainer = Color(0xFFECF4EC)
+
+object EntryColors {
+    val background = Color(0xFFEFF1EE)
+    val surface = Color(0xFFFCFDFC)
+    val heading = Color(0xFF242D27)
+    val body = Color(0xFF4D5B51)
+    val muted = Color(0xFF596E60)
+    val action = Color(0xFF306E32)
+    val greenTint = Color(0xFFE9F1E8)
+    val oliveTint = Color(0xFFE5EBDD)
+    val orangeTint = Color(0xFFFBF0E5)
+    val orangeInk = Color(0xFF8F4908)
+    val warningInk = Color(0xFF76500D)
+    val heroOverlay = Color(0xB3000000)
+}

@@ -1,56 +1,56 @@
 package com.example.wasteco.ui.feature.auth.onboarding
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Handshake
-import androidx.compose.material.icons.filled.Insights
-import androidx.compose.material.icons.filled.RestaurantMenu
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.Eco
+import androidx.compose.material.icons.outlined.Handshake
+import androidx.compose.material.icons.outlined.Savings
+import androidx.compose.material.icons.outlined.SoupKitchen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.example.wasteco.R
 import com.example.wasteco.ui.components.WasteCoLogo
 import com.example.wasteco.ui.components.WasteCoPrimaryButton
 import com.example.wasteco.ui.theme.Elevation
-import com.example.wasteco.ui.theme.PrimaryLight
-import com.example.wasteco.ui.theme.PrimaryMain
+import com.example.wasteco.ui.theme.EntryColors
+import com.example.wasteco.ui.theme.EntryDimens
+import com.example.wasteco.ui.theme.EntryTypography
 import com.example.wasteco.ui.theme.Radius
-import com.example.wasteco.ui.theme.SecondaryLight
-import com.example.wasteco.ui.theme.SecondaryMain
 import com.example.wasteco.ui.theme.Spacing
+import com.example.wasteco.ui.theme.TextInverse
 import com.example.wasteco.ui.theme.WasteCoTheme
 
 @Composable
@@ -59,206 +59,110 @@ fun OnboardingScreen(
     onLoginClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background
-    ) { innerPadding ->
+    Box(modifier.fillMaxSize().background(EntryColors.background).statusBarsPadding(), contentAlignment = Alignment.TopCenter) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+                .widthIn(max = EntryDimens.maxWidth)
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = Spacing.large, vertical = Spacing.medium),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = EntryDimens.gutter, vertical = Spacing.medium),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Spacer(modifier = Modifier.height(Spacing.large))
-
-                // Brand Logo & Name
-                WasteCoLogo(badgeSize = 56.dp)
-
-                Spacer(modifier = Modifier.height(Spacing.medium))
-
-                // Official Tagline
-                Text(
-                    text = "Kelola Pangan, Kurangi Sisa,\nLebih Bermakna",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center
+            WasteCoLogo(withTagline = true)
+            Spacer(Modifier.height(Spacing.compact))
+            Box(
+                modifier = Modifier.fillMaxWidth().aspectRatio(EntryDimens.heroAspectRatio)
+                    .clip(RoundedCornerShape(Radius.large))
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.onboarding_hero),
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop
                 )
-
-                Spacer(modifier = Modifier.height(Spacing.large))
-
-                // Central Storytelling Banner
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(Radius.large),
-                    colors = CardDefaults.cardColors(containerColor = PrimaryLight),
-                    elevation = CardDefaults.cardElevation(defaultElevation = Elevation.none)
+                Row(
+                    modifier = Modifier.fillMaxWidth().align(Alignment.BottomStart)
+                        .background(Brush.verticalGradient(listOf(Color.Transparent, EntryColors.heroOverlay)))
+                        .padding(Spacing.medium),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(Spacing.medium),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(PrimaryMain),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.AutoAwesome,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(Spacing.medium))
-                        Text(
-                            text = "Gerakan Dapur Berkelanjutan",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = PrimaryMain
-                        )
-                    }
+                    Icon(Icons.Filled.Eco, contentDescription = null,
+                        modifier = Modifier.size(EntryDimens.buttonIcon), tint = TextInverse)
+                    Text(stringResource(R.string.onboarding_hero_caption),
+                        style = MaterialTheme.typography.bodySmall, color = TextInverse)
                 }
-
-                Spacer(modifier = Modifier.height(Spacing.large))
-
-                // 3 Core Product Value Pillars
-                PillarItem(
-                    icon = Icons.Default.RestaurantMenu,
-                    iconBgColor = PrimaryLight,
-                    iconTint = PrimaryMain,
-                    title = "Zero-Waste Recipe",
-                    subtitle = "Resep Gemini AI dari bahan sisa dapurmu"
+            }
+            Spacer(Modifier.height(Spacing.medium))
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.compact)) {
+                OnboardingFeature(
+                    Icons.Outlined.SoupKitchen, EntryColors.greenTint, EntryColors.action,
+                    stringResource(R.string.onboarding_recipes), stringResource(R.string.onboarding_recipes_description)
                 )
-
-                Spacer(modifier = Modifier.height(Spacing.compact))
-
-                PillarItem(
-                    icon = Icons.Default.Handshake,
-                    iconBgColor = SecondaryLight,
-                    iconTint = SecondaryMain,
-                    title = "Food Donation Hub",
-                    subtitle = "Peta donasi makanan di sekitarmu"
+                OnboardingFeature(
+                    Icons.Outlined.Handshake, EntryColors.orangeTint, EntryColors.orangeInk,
+                    stringResource(R.string.onboarding_donations), stringResource(R.string.onboarding_donations_description)
                 )
-
-                Spacer(modifier = Modifier.height(Spacing.compact))
-
-                PillarItem(
-                    icon = Icons.Default.Insights,
-                    iconBgColor = PrimaryLight,
-                    iconTint = PrimaryMain,
-                    title = "Statistik Penghematan",
-                    subtitle = "Ringkasan uang & porsi pangan bulanan"
+                OnboardingFeature(
+                    Icons.Outlined.Savings, EntryColors.oliveTint, EntryColors.action,
+                    stringResource(R.string.onboarding_stats), stringResource(R.string.onboarding_stats_description)
                 )
             }
-
-            // CTAs at bottom
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = Spacing.xlarge, bottom = Spacing.medium),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                WasteCoPrimaryButton(
-                    text = "Mulai Sekarang",
-                    onClick = onGetStartedClick,
-                    trailingIcon = Icons.AutoMirrored.Filled.ArrowForward
-                )
-
-                Spacer(modifier = Modifier.height(Spacing.medium))
-
-                val annotatedText = buildAnnotatedString {
-                    append("Sudah punya akun? ")
-                    withStyle(
-                        style = SpanStyle(
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    ) {
-                        append("Masuk")
-                    }
+            Spacer(Modifier.height(EntryDimens.gutter))
+            WasteCoPrimaryButton(
+                text = stringResource(R.string.onboarding_get_started),
+                onClick = onGetStartedClick,
+                trailingIcon = Icons.AutoMirrored.Filled.ArrowForward,
+                containerColor = EntryColors.action,
+                cornerRadius = Radius.medium,
+                iconSize = EntryDimens.buttonIcon
+            )
+            Spacer(Modifier.height(Spacing.medium))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                Text(stringResource(R.string.auth_existing_account), style = EntryTypography.body, color = EntryColors.body)
+                TextButton(onClick = onLoginClick) {
+                    Text(stringResource(R.string.auth_sign_in), color = EntryColors.action)
                 }
-
-                Text(
-                    text = annotatedText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.clickable { onLoginClick() }
-                )
             }
         }
     }
 }
 
 @Composable
-private fun PillarItem(
+private fun OnboardingFeature(
     icon: ImageVector,
-    iconBgColor: Color,
-    iconTint: Color,
+    badgeColor: Color,
+    iconColor: Color,
     title: String,
-    subtitle: String,
-    modifier: Modifier = Modifier
+    description: String
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(Radius.medium),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = Elevation.small)
+        color = EntryColors.surface,
+        shadowElevation = Elevation.small
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Spacing.medium),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.padding(Spacing.compact),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.compact)
         ) {
             Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(Radius.small))
-                    .background(iconBgColor),
+                Modifier.size(EntryDimens.featureIconBadge).background(badgeColor, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconTint,
-                    modifier = Modifier.size(24.dp)
-                )
+                Icon(icon, contentDescription = null, modifier = Modifier.size(EntryDimens.featureIcon), tint = iconColor)
             }
-            Spacer(modifier = Modifier.width(Spacing.medium))
             Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(Spacing.xxs))
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(title, style = MaterialTheme.typography.titleMedium, color = EntryColors.heading)
+                Text(description, style = MaterialTheme.typography.bodyMedium, color = EntryColors.muted)
             }
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, widthDp = 390, heightDp = 780)
 @Composable
 private fun OnboardingScreenPreview() {
-    WasteCoTheme {
-        OnboardingScreen(
-            onGetStartedClick = {},
-            onLoginClick = {}
-        )
-    }
+    WasteCoTheme { OnboardingScreen(onGetStartedClick = {}, onLoginClick = {}) }
 }

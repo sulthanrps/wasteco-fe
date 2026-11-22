@@ -1,6 +1,7 @@
 package com.example.wasteco.ui.components
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,11 +9,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -20,10 +25,15 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.wasteco.R
+import com.example.wasteco.ui.theme.EntryColors
+import com.example.wasteco.ui.theme.EntryDimens
 import com.example.wasteco.ui.theme.Elevation
 import com.example.wasteco.ui.theme.Radius
 import com.example.wasteco.ui.theme.Spacing
@@ -36,7 +46,10 @@ fun WasteCoPrimaryButton(
     enabled: Boolean = true,
     isLoading: Boolean = false,
     trailingIcon: ImageVector? = null,
-    leadingIcon: ImageVector? = null
+    leadingIcon: ImageVector? = null,
+    containerColor: Color = MaterialTheme.colorScheme.primary,
+    cornerRadius: Dp = Radius.large,
+    iconSize: Dp = 24.dp
 ) {
     Button(
         onClick = onClick,
@@ -44,9 +57,9 @@ fun WasteCoPrimaryButton(
             .fillMaxWidth()
             .height(52.dp),
         enabled = enabled && !isLoading,
-        shape = RoundedCornerShape(Radius.large),
+        shape = RoundedCornerShape(cornerRadius),
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
+            containerColor = containerColor,
             contentColor = Color.White,
             disabledContainerColor = MaterialTheme.colorScheme.outlineVariant,
             disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -63,7 +76,7 @@ fun WasteCoPrimaryButton(
         } else {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (leadingIcon != null) {
-                    Icon(imageVector = leadingIcon, contentDescription = null)
+                    Icon(imageVector = leadingIcon, contentDescription = null, modifier = Modifier.size(iconSize))
                     Spacer(modifier = Modifier.width(Spacing.small))
                 }
                 Text(
@@ -73,7 +86,7 @@ fun WasteCoPrimaryButton(
                 )
                 if (trailingIcon != null) {
                     Spacer(modifier = Modifier.width(Spacing.small))
-                    Icon(imageVector = trailingIcon, contentDescription = null)
+                    Icon(imageVector = trailingIcon, contentDescription = null, modifier = Modifier.size(iconSize))
                 }
             }
         }
@@ -131,6 +144,21 @@ fun WasteCoTextButton(
             style = MaterialTheme.typography.bodyMedium,
             color = color,
             fontWeight = fontWeight
+        )
+    }
+}
+
+
+@Composable
+fun WasteCoEntryBackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier.size(EntryDimens.backButton).background(EntryColors.surface, CircleShape)
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = stringResource(R.string.back),
+            tint = EntryColors.heading
         )
     }
 }

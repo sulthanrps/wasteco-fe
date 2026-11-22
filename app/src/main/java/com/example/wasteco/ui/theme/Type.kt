@@ -99,3 +99,24 @@ val Typography = Typography(
         letterSpacing = 0.5.sp
     )
 )
+
+object EntryTypography {
+    val heading = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 25.sp,
+        lineHeight = 31.sp,
+        letterSpacing = (-0.5).sp
+    )
+    val body = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontSize = 15.sp,
+        lineHeight = 23.sp
+    )
+    val metric = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 30.sp,
+        lineHeight = 36.sp
+    )
+}

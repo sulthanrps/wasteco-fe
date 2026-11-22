@@ -28,3 +28,18 @@ object Elevation {
     val medium: Dp = 4.dp
     val large: Dp = 8.dp
 }
+
+object EntryDimens {
+    val gutter = 20.dp
+    val maxWidth = 480.dp
+    val backButton = 48.dp
+    val compactLogo = 16.dp
+    val profileLogo = 32.dp
+    val onboardingLogoWidth = 304.dp
+    const val heroAspectRatio = 1.56f
+    val featureIconBadge = 44.dp
+    val featureIcon = 22.dp
+    val profileAvatar = 96.dp
+    val profileAccent = 112.dp
+    val buttonIcon = 18.dp
+}

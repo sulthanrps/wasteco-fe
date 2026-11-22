@@ -1,46 +1,55 @@
 package com.example.wasteco.ui.feature.auth.login
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.filled.Login
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.wasteco.R
+import com.example.wasteco.ui.components.WasteCoEntryBackButton
 import com.example.wasteco.ui.components.WasteCoLogo
 import com.example.wasteco.ui.components.WasteCoPasswordField
 import com.example.wasteco.ui.components.WasteCoPrimaryButton
 import com.example.wasteco.ui.components.WasteCoTextField
+import com.example.wasteco.ui.theme.EntryColors
+import com.example.wasteco.ui.theme.EntryDimens
+import com.example.wasteco.ui.theme.EntryTypography
+import com.example.wasteco.ui.theme.Radius
 import com.example.wasteco.ui.theme.Spacing
 import com.example.wasteco.ui.theme.WasteCoTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     uiState: LoginUiState,
@@ -52,156 +61,111 @@ fun LoginScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            TopAppBar(
-                title = { WasteCoLogo(badgeSize = Spacing.xlarge) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Kembali",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        }
-    ) { innerPadding ->
+    var showResetInfo by rememberSaveable { mutableStateOf(false) }
+
+    Box(
+        modifier.fillMaxSize().background(EntryColors.background).statusBarsPadding().imePadding(),
+        contentAlignment = Alignment.TopCenter
+    ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+                .widthIn(max = EntryDimens.maxWidth)
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = Spacing.large, vertical = Spacing.medium),
-            verticalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = EntryDimens.gutter, vertical = Spacing.compact)
         ) {
-            Column {
-                // Header
-                Text(
-                    text = "Selamat Datang Kembali",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                Spacer(modifier = Modifier.height(Spacing.small))
-
-                Text(
-                    text = "Masuk ke akun WasteCo untuk mengelola bahan dapurmu dan selamatkan bumi dari sisa makanan.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(Spacing.xlarge))
-
-                // Email Field
-                WasteCoTextField(
-                    value = uiState.email,
-                    onValueChange = onEmailChange,
-                    label = "Alamat Email",
-                    placeholder = "nama@email.com",
-                    leadingIcon = Icons.Default.Email,
-                    isError = uiState.emailError != null,
-                    errorMessage = uiState.emailError
-                )
-
-                Spacer(modifier = Modifier.height(Spacing.medium))
-
-                // Password Field
-                WasteCoPasswordField(
-                    value = uiState.password,
-                    onValueChange = onPasswordChange,
-                    label = "Kata Sandi",
-                    placeholder = "Masukkan kata sandi akun",
-                    leadingIcon = Icons.Default.Lock,
-                    isError = uiState.passwordError != null,
-                    errorMessage = uiState.passwordError
-                )
-
-                // Forgot Password link
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = Spacing.xs),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Text(
-                        text = "Lupa kata sandi?",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable { onForgotPasswordClick() }
-                    )
-                }
-
-                if (!uiState.errorMessage.isNullOrEmpty()) {
-                    Spacer(modifier = Modifier.height(Spacing.medium))
-                    Text(
-                        text = uiState.errorMessage,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(Spacing.xlarge))
-
-                // Submit Button
-                WasteCoPrimaryButton(
-                    text = "Masuk",
-                    onClick = onLoginClick,
-                    isLoading = uiState.isLoading,
-                    trailingIcon = Icons.AutoMirrored.Filled.Login
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                WasteCoEntryBackButton(onClick = onBackClick)
+                WasteCoLogo(
+                    Modifier.background(EntryColors.greenTint, CircleShape)
+                        .padding(horizontal = Spacing.compact, vertical = Spacing.xs)
                 )
             }
-
-            // Bottom Prompt: Register
+            Spacer(Modifier.height(Spacing.large))
+            Text(stringResource(R.string.auth_login_heading), style = EntryTypography.heading, color = EntryColors.heading)
+            Spacer(Modifier.height(Spacing.xs))
+            Text(stringResource(R.string.auth_login_description), style = EntryTypography.body, color = EntryColors.body)
+            Spacer(Modifier.height(Spacing.large))
+            WasteCoTextField(
+                value = uiState.email,
+                onValueChange = onEmailChange,
+                label = stringResource(R.string.auth_email),
+                placeholder = stringResource(R.string.auth_email_placeholder),
+                leadingIcon = Icons.Outlined.Email,
+                isError = uiState.emailError != null,
+                errorMessage = uiState.emailError,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                filledStyle = true
+            )
+            Spacer(Modifier.height(Spacing.medium))
+            WasteCoPasswordField(
+                value = uiState.password,
+                onValueChange = onPasswordChange,
+                label = stringResource(R.string.auth_password),
+                placeholder = stringResource(R.string.auth_login_password_placeholder),
+                leadingIcon = Icons.Outlined.Lock,
+                isError = uiState.passwordError != null,
+                errorMessage = uiState.passwordError,
+                filledStyle = true,
+                labelAction = {
+                    Text(
+                        stringResource(R.string.auth_forgot_password),
+                        modifier = Modifier.clickable(role = Role.Button) {
+                            onForgotPasswordClick()
+                            showResetInfo = true
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = EntryColors.action
+                    )
+                }
+            )
+            uiState.errorMessage?.let { message ->
+                Spacer(Modifier.height(Spacing.small))
+                Text(message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+            }
+            Spacer(Modifier.height(Spacing.large))
+            WasteCoPrimaryButton(
+                text = stringResource(R.string.auth_sign_in),
+                onClick = onLoginClick,
+                isLoading = uiState.isLoading,
+                trailingIcon = Icons.AutoMirrored.Filled.ArrowForward,
+                containerColor = EntryColors.action,
+                cornerRadius = Radius.medium,
+                iconSize = EntryDimens.buttonIcon
+            )
+            Spacer(Modifier.height(Spacing.large))
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = Spacing.large),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val annotatedText = buildAnnotatedString {
-                    append("Belum punya akun? ")
-                    withStyle(
-                        style = SpanStyle(
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    ) {
-                        append("Daftar sekarang")
-                    }
+                Text(stringResource(R.string.auth_new_account), style = EntryTypography.body, color = EntryColors.body)
+                TextButton(onClick = onRegisterClick) {
+                    Text(stringResource(R.string.auth_register_link), color = EntryColors.action)
                 }
-                Text(
-                    text = annotatedText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.clickable { onRegisterClick() }
-                )
             }
         }
     }
+    if (showResetInfo) {
+        AlertDialog(
+            onDismissRequest = { showResetInfo = false },
+            title = { Text(stringResource(R.string.auth_forgot_password)) },
+            text = { Text(stringResource(R.string.auth_reset_unavailable)) },
+            confirmButton = {
+                TextButton(onClick = { showResetInfo = false }) { Text(stringResource(R.string.auth_close)) }
+            }
+        )
+    }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, widthDp = 390)
 @Composable
 private fun LoginScreenPreview() {
     WasteCoTheme {
-        LoginScreen(
-            uiState = LoginUiState(email = "affan@wasteco.id"),
-            onEmailChange = {},
-            onPasswordChange = {},
-            onLoginClick = {},
-            onForgotPasswordClick = {},
-            onRegisterClick = {},
-            onBackClick = {}
-        )
+        LoginScreen(LoginUiState(email = "nama@email.com"), {}, {}, {}, {}, {}, {})
     }
 }
