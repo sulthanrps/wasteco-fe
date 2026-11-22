@@ -11,14 +11,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 fun DonationDetailRoute(
     donationId: String,
     onBackClick: () -> Unit,
+    latitude: Double? = null,
+    longitude: Double? = null,
     onReturnToDonationHub: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: DonationDetailViewModel = viewModel(factory = DonationDetailViewModel.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(donationId) {
-        viewModel.loadDonation(donationId)
+    LaunchedEffect(donationId, latitude, longitude) {
+        viewModel.loadDonation(donationId, latitude, longitude)
     }
 
     DonationDetailScreen(

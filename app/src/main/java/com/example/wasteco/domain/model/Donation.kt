@@ -2,7 +2,9 @@ package com.example.wasteco.domain.model
 
 data class DonationItem(
     val name: String,
-    val quantity: String
+    val quantity: String,
+    val id: String = "",
+    val selected: Boolean = false
 )
 
 data class DonationUser(
@@ -10,7 +12,8 @@ data class DonationUser(
     val name: String,
     val areaName: String,
     val photoUrl: String?,
-    val isVerified: Boolean
+    val isVerified: Boolean,
+    val whatsappUrl: String? = null
 )
 
 enum class DonationRole {
@@ -42,3 +45,17 @@ data class Donation(
     val user: DonationUser,
     val donor: DonationUser?
 )
+
+data class DonationRequestItem(val name: String, val quantity: Double, val unit: String)
+
+data class DonationRequest(
+    val items: List<DonationRequestItem>,
+    val areaName: String?,
+    val meetingPoint: String,
+    val latitude: Double,
+    val longitude: Double,
+    val receiveStart: String,
+    val receiveEnd: String
+)
+
+const val DONATION_RADIUS_KM = 3

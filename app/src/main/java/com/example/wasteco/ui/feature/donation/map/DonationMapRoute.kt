@@ -9,7 +9,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun DonationMapRoute(
     onListViewClick: () -> Unit,
-    onDonationDetailClick: (String) -> Unit,
+    onDonationDetailClick: (String, Double?, Double?) -> Unit,
     onHomeTabClick: () -> Unit,
     onRecipeTabClick: () -> Unit,
     onProfileClick: () -> Unit,
@@ -20,13 +20,20 @@ fun DonationMapRoute(
 
     DonationMapScreen(
         uiState = uiState,
+        onRetry = { viewModel.loadNearbyDonations() },
         onDonationSelected = viewModel::selectDonation,
         onLocationChanged = viewModel::updateUserLocation,
         onOpenLocationSheet = { viewModel.setLocationSheetVisible(true) },
         onDismissLocationSheet = { viewModel.setLocationSheetVisible(false) },
         onGpsLoadingChanged = viewModel::setGpsLoading,
         onListViewClick = onListViewClick,
-        onDonationDetailClick = onDonationDetailClick,
+        onDonationDetailClick = { id ->
+            onDonationDetailClick(
+                id,
+                uiState.userLatitude.takeIf { uiState.hasLocation },
+                uiState.userLongitude.takeIf { uiState.hasLocation }
+            )
+        },
         onHomeTabClick = onHomeTabClick,
         onRecipeTabClick = onRecipeTabClick,
         onProfileClick = onProfileClick,

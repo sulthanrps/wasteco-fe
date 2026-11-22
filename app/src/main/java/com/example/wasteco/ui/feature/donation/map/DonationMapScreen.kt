@@ -1,8 +1,8 @@
 package com.example.wasteco.ui.feature.donation.map
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Context
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Geocoder
@@ -67,6 +67,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.res.stringResource
+import com.example.wasteco.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -95,16 +97,32 @@ import com.example.wasteco.ui.theme.PrimaryDarker
 import com.example.wasteco.ui.theme.PrimaryMain
 import com.example.wasteco.ui.theme.Radius
 import com.example.wasteco.ui.theme.Spacing
+import org.json.JSONArray
+import org.json.JSONObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
-private fun formatPinsJson(donations: List<Donation>): String {
-    return donations.joinToString(",") { d ->
-        val safeTitle = d.title.replace("\"", "\\\"").replace("'", "\\'")
-        """{ id: "${d.id}", title: "$safeTitle", itemsCount: ${d.items.size.coerceAtLeast(1)}, lat: ${d.latitude}, lng: ${d.longitude} }"""
-    }
+private fun formatPinsJson(donations: List<Donation>): String =
+    JSONArray().apply {
+        donations.forEach { donation ->
+            put(
+                JSONObject()
+                    .put("id", donation.id)
+                    .put("title", donation.title)
+                    .put("itemsCount", donation.items.size)
+                    .put("lat", donation.latitude)
+                    .put("lng", donation.longitude)
+            )
+        }
+    }.toString()
+
+internal fun leafletDocument(context: Context, template: String): String {
+    val stylesheet = context.assets.open("leaflet/leaflet.css").bufferedReader().use { it.readText() }
+    val script = context.assets.open("leaflet/leaflet.js").bufferedReader().use { it.readText() }
+    return template.replace("<!-- leaflet-styles -->", "<style>$stylesheet</style>")
+        .replace("<!-- leaflet-script -->", "<script>$script</script>")
 }
 
 private const val LEAFLET_HTML = """
@@ -113,7 +131,7 @@ private const val LEAFLET_HTML = """
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <!-- leaflet-styles -->
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body {
@@ -195,7 +213,7 @@ private const val LEAFLET_HTML = """
 </head>
 <body>
     <div id="map"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <!-- leaflet-script -->
     <script>
         var map = null;
         var markers = {};
@@ -213,11 +231,11 @@ private const val LEAFLET_HTML = """
             return h;
         }
 
-        function initMap(userLat, userLng) {
+        function initMap(userLat, userLng, hasLocation) {
             if (map) return;
             if (typeof L === 'undefined') {
                 console.log("Leaflet script still loading, retrying...");
-                setTimeout(function() { initMap(userLat, userLng); }, 150);
+                setTimeout(function() { initMap(userLat, userLng, hasLocation); }, 150);
                 return;
             }
 
@@ -256,7 +274,7 @@ private const val LEAFLET_HTML = """
                 iconSize: [24, 24],
                 iconAnchor: [12, 12]
             });
-            userMarker = L.marker([userLat, userLng], { icon: userIcon }).addTo(map);
+            if (hasLocation) userMarker = L.marker([userLat, userLng], { icon: userIcon }).addTo(map);
 
             // Click anywhere on map to set user location baseline
             map.on('click', function(e) {
@@ -292,16 +310,22 @@ private const val LEAFLET_HTML = """
             markers = {};
 
             pins.forEach(function(pin) {
-                var html = '<div class="wasteco-pin-container" id="pin-' + pin.id + '">' +
-                    '<div class="wasteco-pin">' +
-                    '<span>' + pin.title + '</span>' +
-                    '<span class="wasteco-badge">' + pin.itemsCount + ' item</span>' +
-                    '</div>' +
-                    '</div>';
+                var container = document.createElement('div');
+                container.className = 'wasteco-pin-container';
+                container.id = 'pin-' + pin.id;
+                var marker = document.createElement('div');
+                marker.className = 'wasteco-pin';
+                var title = document.createElement('span');
+                title.textContent = pin.title;
+                var count = document.createElement('span');
+                count.className = 'wasteco-badge';
+                count.textContent = pin.itemsCount + ' item';
+                marker.append(title, count);
+                container.append(marker);
 
                 var icon = L.divIcon({
                     className: 'wasteco-custom-marker',
-                    html: html,
+                    html: container,
                     iconSize: [120, 32],
                     iconAnchor: [60, 16]
                 });
@@ -388,6 +412,7 @@ private const val LEAFLET_HTML = """
 @Composable
 fun DonationMapScreen(
     uiState: DonationMapUiState,
+    onRetry: () -> Unit,
     onDonationSelected: (String) -> Unit,
     onLocationChanged: (Double, Double, String) -> Unit,
     onOpenLocationSheet: () -> Unit,
@@ -450,13 +475,21 @@ fun DonationMapScreen(
         }
     }
 
+    LaunchedEffect(uiState.userLatitude, uiState.userLongitude, uiState.hasLocation, isMapLoaded) {
+        if (isMapLoaded && uiState.hasLocation) {
+            webViewRef?.evaluateJavascript(
+                "window.updateUserLocation(${uiState.userLatitude}, ${uiState.userLongitude});", null
+            )
+        }
+    }
+
     // Keep map markers synchronized when donations list updates or map loads
     LaunchedEffect(uiState.donations, isMapLoaded) {
-        if (isMapLoaded && uiState.donations.isNotEmpty()) {
+        if (isMapLoaded) {
             val pinsJs = formatPinsJson(uiState.donations)
-            webViewRef?.evaluateJavascript("window.setDonations([$pinsJs]);", null)
+            webViewRef?.evaluateJavascript("window.setDonations($pinsJs);", null)
             selectedDonation?.let {
-                webViewRef?.evaluateJavascript("window.highlightMarker('${it.id}');", null)
+                webViewRef?.evaluateJavascript("window.highlightMarker(${JSONObject.quote(it.id)});", null)
             }
         }
     }
@@ -464,7 +497,7 @@ fun DonationMapScreen(
     // Keep active highlight synchronized when selected donation changes
     LaunchedEffect(selectedDonation?.id, isMapLoaded) {
         if (isMapLoaded && selectedDonation != null) {
-            webViewRef?.evaluateJavascript("window.highlightMarker('${selectedDonation.id}');", null)
+            webViewRef?.evaluateJavascript("window.highlightMarker(${JSONObject.quote(selectedDonation.id)});", null)
         }
     }
 
@@ -597,37 +630,22 @@ fun DonationMapScreen(
                                 view?.evaluateJavascript(
                                     """
                                     window.ensureMapHeight();
-                                    window.initMap(${uiState.userLatitude}, ${uiState.userLongitude});
-                                    window.setDonations([$pinsJs]);
+                                    window.initMap(${uiState.userLatitude}, ${uiState.userLongitude}, ${uiState.hasLocation});
+                                    window.setDonations($pinsJs);
                                     """.trimIndent(),
                                     null
                                 )
                                 selectedDonation?.let {
-                                    view?.evaluateJavascript("window.highlightMarker('${it.id}');", null)
+                                    view?.evaluateJavascript("window.highlightMarker(${JSONObject.quote(it.id)});", null)
                                 }
                             }
                         }
 
-                        loadDataWithBaseURL("https://wasteco.app", LEAFLET_HTML, "text/html", "UTF-8", null)
+                        loadDataWithBaseURL("https://wasteco.app", leafletDocument(ctx, LEAFLET_HTML), "text/html", "UTF-8", null)
                         webViewRef = this
                     }
                 },
-                update = { webView ->
-                    webViewRef = webView
-                    if (isMapLoaded && uiState.donations.isNotEmpty()) {
-                        val pinsJs = formatPinsJson(uiState.donations)
-                        webView.evaluateJavascript(
-                            """
-                            window.ensureMapHeight();
-                            window.setDonations([$pinsJs]);
-                            """.trimIndent(),
-                            null
-                        )
-                        selectedDonation?.let {
-                            webView.evaluateJavascript("window.highlightMarker('${it.id}');", null)
-                        }
-                    }
-                }
+                update = { webView -> webViewRef = webView }
             )
 
             // Top Floating Search / Location & View Toggle Bar
@@ -980,7 +998,7 @@ fun DonationMapScreen(
                                         try {
                                             context.startActivity(mapIntent)
                                         } catch (_: Exception) {
-                                            webViewRef?.evaluateJavascript("window.highlightMarker('${selectedDonation.id}');", null)
+                                            webViewRef?.evaluateJavascript("window.highlightMarker(${JSONObject.quote(selectedDonation.id)});", null)
                                         }
                                     }
                             ) {
@@ -1002,6 +1020,17 @@ fun DonationMapScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = PrimaryMain)
+                }
+            } else {
+                androidx.compose.material3.Surface(modifier = Modifier.align(Alignment.BottomCenter)) {
+                    Column(modifier = Modifier.padding(Spacing.medium)) {
+                        Text(uiState.errorMessage ?: stringResource(R.string.donation_empty))
+                        if (uiState.errorMessage != null) {
+                            androidx.compose.material3.TextButton(onClick = onRetry) {
+                                Text(stringResource(R.string.retry))
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1067,7 +1096,7 @@ private fun resolveAddress(context: Context, lat: Double, lng: Double): String {
         if (!Geocoder.isPresent()) {
             return "%.4f, %.4f".format(Locale.US, lat, lng)
         }
-        val geocoder = Geocoder(context, Locale("id", "ID"))
+        val geocoder = Geocoder(context, Locale.forLanguageTag("id-ID"))
         @Suppress("DEPRECATION")
         val addresses = geocoder.getFromLocation(lat, lng, 1)
         val addr = addresses?.firstOrNull()

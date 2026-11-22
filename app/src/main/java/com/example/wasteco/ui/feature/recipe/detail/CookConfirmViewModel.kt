@@ -50,17 +50,19 @@ class CookConfirmViewModel(
     }
 
     fun confirmCooking() {
-        val recipe = _uiState.value.recipe ?: return
+        val state = _uiState.value
+        val recipe = state.recipe ?: return
+        if (state.isConfirming || state.isCookRecorded) return
+        _uiState.update { it.copy(isConfirming = true, errorMessage = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isConfirming = true, errorMessage = null) }
             val updatedIngredients = recipe.usedIngredients.map { ing ->
-                val qty = _uiState.value.ingredientQuantities[ing.ingredientId] ?: ing.quantity
+                val qty = state.ingredientQuantities[ing.ingredientId] ?: ing.quantity
                 ing.copy(quantity = qty)
             }
             val result = recipeRepository.confirmCooking(
                 recipeName = recipe.name,
-                portions = _uiState.value.cookedPortions,
-                estimatedSavings = _uiState.value.totalEstimatedSavings,
+                portions = state.cookedPortions,
+                estimatedSavings = state.totalEstimatedSavings,
                 usedIngredients = updatedIngredients
             )
             result.onSuccess {

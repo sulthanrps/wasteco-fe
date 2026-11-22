@@ -2,16 +2,10 @@ package com.example.wasteco.ui.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,8 +26,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.wasteco.R
 import com.example.wasteco.domain.model.SessionState
-import com.example.wasteco.ui.components.BottomTab
-import com.example.wasteco.ui.components.WasteCoBottomBar
 import com.example.wasteco.ui.feature.auth.login.LoginRoute
 import com.example.wasteco.ui.feature.auth.onboarding.OnboardingScreen
 import com.example.wasteco.ui.feature.auth.register.RegisterRoute
@@ -44,11 +36,13 @@ import com.example.wasteco.ui.feature.donation.detail.DonationDetailRoute
 import com.example.wasteco.ui.feature.donation.map.DonationMapRoute
 import com.example.wasteco.ui.feature.home.HomeRoute
 import com.example.wasteco.ui.feature.pantry.PantryRoute
+import com.example.wasteco.ui.feature.profile.ProfileRoute
 import com.example.wasteco.ui.feature.recipe.RecipeListRoute
-import com.example.wasteco.ui.feature.recipe.camera.CameraCaptureScreen
-import com.example.wasteco.ui.feature.recipe.camera.ReviewPhotoScreen
+import com.example.wasteco.ui.feature.recipe.camera.IngredientScanRoute
 import com.example.wasteco.ui.feature.recipe.detail.CookConfirmRoute
 import com.example.wasteco.ui.feature.recipe.detail.RecipeDetailRoute
+
+private const val SHOW_REQUESTING_AFTER_CREATE = "show_requesting_after_create"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,7 +81,7 @@ fun WasteCoNavHost(
     NavHost(
         navController = navController,
         startDestination = startDest,
-        modifier = modifier
+        modifier = modifier.navigationBarsPadding()
     ) {
         composable<Destination.Onboarding> {
             OnboardingScreen(
@@ -138,6 +132,8 @@ fun WasteCoNavHost(
 
         composable<Destination.Home> {
             HomeRoute(
+                onDonationClick = { navController.navigate(Destination.DonationDetail(it)) },
+                onDonationMapClick = { navController.navigate(Destination.DonationMap) },
                 onPantryClick = {
                     navController.navigate(Destination.Pantry)
                 },
@@ -173,28 +169,9 @@ fun WasteCoNavHost(
         }
 
         composable<Destination.CameraCapture> {
-            CameraCaptureScreen(
-                onCloseClick = {
-                    navController.popBackStack()
-                },
-                onCaptureClick = {
-                    navController.navigate(Destination.ReviewPhoto)
-                },
-                onGalleryClick = {
-                    navController.navigate(Destination.ReviewPhoto)
-                }
-            )
-        }
-
-        composable<Destination.ReviewPhoto> {
-            ReviewPhotoScreen(
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onRetakeClick = {
-                    navController.popBackStack()
-                },
-                onAddAllToPantryClick = {
+            IngredientScanRoute(
+                onClose = { navController.popBackStack() },
+                onSaved = {
                     navController.navigate(Destination.Pantry) {
                         popUpTo(Destination.Pantry) { inclusive = true }
                     }
@@ -243,8 +220,15 @@ fun WasteCoNavHost(
             )
         }
 
-        composable<Destination.Donations> {
+        composable<Destination.Donations> { backStackEntry ->
+            val showRequesting by remember(backStackEntry) {
+                backStackEntry.savedStateHandle.getStateFlow(SHOW_REQUESTING_AFTER_CREATE, false)
+            }.collectAsStateWithLifecycle()
             DonationHubRoute(
+                showRequesting = showRequesting,
+                onRequestingShown = {
+                    backStackEntry.savedStateHandle[SHOW_REQUESTING_AFTER_CREATE] = false
+                },
                 onMapViewClick = {
                     navController.navigate(Destination.DonationMap)
                 },
@@ -274,10 +258,16 @@ fun WasteCoNavHost(
         composable<Destination.DonationMap> {
             DonationMapRoute(
                 onListViewClick = {
-                    navController.popBackStack()
+                    if (navController.previousBackStackEntry?.destination?.hasRoute<Destination.Donations>() == true) {
+                        navController.popBackStack()
+                    } else {
+                        navController.navigate(Destination.Donations) {
+                            popUpTo(Destination.DonationMap) { inclusive = true }
+                        }
+                    }
                 },
-                onDonationDetailClick = { donationId ->
-                    navController.navigate(Destination.DonationDetail(donationId))
+                onDonationDetailClick = { donationId, latitude, longitude ->
+                    navController.navigate(Destination.DonationDetail(donationId, latitude?.toString(), longitude?.toString()))
                 },
                 onHomeTabClick = {
                     navController.navigate(Destination.Home) {
@@ -297,12 +287,14 @@ fun WasteCoNavHost(
             val route = backStackEntry.toRoute<Destination.DonationDetail>()
             DonationDetailRoute(
                 donationId = route.donationId,
+                latitude = route.latitude?.toDoubleOrNull(),
+                longitude = route.longitude?.toDoubleOrNull(),
                 onBackClick = {
                     navController.popBackStack()
                 },
                 onReturnToDonationHub = {
-                    navController.navigate(Destination.Donations) {
-                        popUpTo(Destination.Donations) { inclusive = true }
+                    if (!navController.popBackStack(Destination.Donations, inclusive = false)) {
+                        navController.navigate(Destination.Donations)
                     }
                 }
             )
@@ -317,6 +309,8 @@ fun WasteCoNavHost(
                     navController.navigate(Destination.Donations) {
                         popUpTo(Destination.Donations) { inclusive = true }
                     }
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle?.set(SHOW_REQUESTING_AFTER_CREATE, true)
                 }
             )
         }
@@ -337,34 +331,7 @@ fun WasteCoNavHost(
         }
 
         composable<Destination.Profile> {
-            Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = { Text("Profil Pengguna") },
-                        navigationIcon = {
-                            IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Kembali"
-                                )
-                            }
-                        }
-                    )
-                }
-            ) { innerPadding ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Profil Pengguna",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
+            ProfileRoute(onBack = { navController.popBackStack() })
         }
     }
 }

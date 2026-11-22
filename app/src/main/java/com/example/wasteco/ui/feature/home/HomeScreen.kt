@@ -35,6 +35,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.ui.res.stringResource
+import com.example.wasteco.R
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,14 +75,10 @@ fun HomeScreen(
     onDonationsClick: () -> Unit,
     onProfileClick: () -> Unit,
     onRefresh: () -> Unit,
+    onDonationClick: (String) -> Unit,
+    onDonationMapClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val sampleNearbyRequests = listOf(
-        NearbyRequestItem("1", "Wortel & Telur", 3, "Budi Santoso", "Dinoyo", "800 m", "Diminta 1 jam lalu"),
-        NearbyRequestItem("2", "Wortel & Telur", 3, "Budi Santoso", "Dinoyo", "800 m", "Diminta 1 jam lalu"),
-        NearbyRequestItem("3", "Wortel & Telur", 3, "Budi Santoso", "Dinoyo", "800 m", "Diminta 1 jam lalu")
-    )
-
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
@@ -147,10 +145,9 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(Spacing.large))
 
-            // Greeting Section: "Selamat pagi, Affan 👋" + Location
-            val userName = uiState.currentUser?.name?.split(" ")?.firstOrNull() ?: "Affan"
+            val userName = uiState.currentUser?.name?.substringBefore(' ').orEmpty()
             Text(
-                text = "Selamat pagi, $userName 👋",
+                text = if (userName.isBlank()) stringResource(R.string.home_greeting) else stringResource(R.string.home_greeting_name, userName),
                 style = MaterialTheme.typography.headlineLarge.copy(fontSize = 24.sp),
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
@@ -167,7 +164,8 @@ fun HomeScreen(
                 )
                 Spacer(modifier = Modifier.width(Spacing.xxs))
                 Text(
-                    text = uiState.currentUser?.areaName?.split(",")?.take(2)?.joinToString(",") ?: "Dinoyo, Malang",
+                    text = uiState.currentUser?.areaName?.takeIf { it.isNotBlank() }
+                        ?: stringResource(R.string.profile_area_unspecified),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -293,7 +291,7 @@ fun HomeScreen(
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = PrimaryMain,
-                    modifier = Modifier.clickable(onClick = onDonationsClick)
+                    modifier = Modifier.clickable(onClick = onDonationMapClick)
                 )
             }
 
@@ -301,10 +299,16 @@ fun HomeScreen(
 
             // Nearby Donation Requests List
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
-                sampleNearbyRequests.forEach { item ->
+                if (uiState.nearbyDonations.isEmpty() && !uiState.isLoading) {
+                    Text(uiState.nearbyError ?: stringResource(R.string.donation_empty))
+                }
+                uiState.nearbyDonations.take(3).forEach { donation ->
                     NearbyRequestCard(
-                        item = item,
-                        onClick = onDonationsClick
+                        item = NearbyRequestItem(
+                            donation.id, donation.title, donation.items.size,
+                            donation.user.name, donation.areaName, donation.distanceDesc, donation.createdTimeAgo
+                        ),
+                        onClick = { onDonationClick(donation.id) }
                     )
                 }
             }
@@ -445,7 +449,9 @@ private fun HomeScreenPreview() {
             onPantryClick = {},
             onDonationsClick = {},
             onProfileClick = {},
-            onRefresh = {}
+            onRefresh = {},
+            onDonationClick = {},
+            onDonationMapClick = {}
         )
     }
 }

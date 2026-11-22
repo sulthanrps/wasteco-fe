@@ -50,8 +50,10 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
 
     private val okHttpClient: OkHttpClient by lazy {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
+            redactHeader("x-api-key")
+            redactHeader("Authorization")
             level = if (BuildConfig.DEBUG) {
-                HttpLoggingInterceptor.Level.BODY
+                HttpLoggingInterceptor.Level.BASIC
             } else {
                 HttpLoggingInterceptor.Level.NONE
             }
@@ -111,6 +113,7 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
     override val recipeRepository: RecipeRepository by lazy {
         DefaultRecipeRepository(
             recipeApiService = recipeApiService,
+            pantryRepository = pantryRepository,
             json = json
         )
     }

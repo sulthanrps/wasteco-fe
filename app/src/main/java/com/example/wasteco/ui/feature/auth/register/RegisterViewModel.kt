@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.wasteco.WasteCoApplication
 import com.example.wasteco.data.repository.AuthRepository
+import com.example.wasteco.data.repository.normalizedWhatsAppNumber
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +25,10 @@ class RegisterViewModel(
     fun onNameChange(name: String) {
         val error = if (name.isBlank()) "Nama tidak boleh kosong" else null
         _uiState.update { it.copy(name = name, nameError = error, errorMessage = null) }
+    }
+
+    fun onPhoneNumberChange(phoneNumber: String) {
+        _uiState.update { it.copy(phoneNumber = phoneNumber, phoneNumberInvalid = false, errorMessage = null) }
     }
 
     fun onEmailChange(email: String) {
@@ -60,12 +65,34 @@ class RegisterViewModel(
         _uiState.update { it.copy(areaName = areaName, areaNameError = null) }
     }
 
+    fun locate() {
+        _uiState.update { it.copy(isLocating = true, locationError = false) }
+    }
+
+    fun setLocation(latitude: Double, longitude: Double, areaName: String?) {
+        _uiState.update { state ->
+            state.copy(
+                latitude = latitude,
+                longitude = longitude,
+                areaName = areaName ?: state.areaName,
+                areaNameError = null,
+                isLocating = false,
+                locationError = areaName == null
+            )
+        }
+    }
+
+    fun locationUnavailable() {
+        _uiState.update { it.copy(isLocating = false, locationError = true) }
+    }
+
     fun onAgreementChange(isChecked: Boolean) {
         _uiState.update { it.copy(isAgreementChecked = isChecked, errorMessage = null) }
     }
 
     fun onRegisterSubmit() {
         val currentState = _uiState.value
+        if (currentState.isLoading || currentState.isLocating) return
         if (!currentState.isFormValid) {
             _uiState.update {
                 it.copy(
@@ -79,12 +106,19 @@ class RegisterViewModel(
             return
         }
 
+        val phoneNumber = currentState.phoneNumber.normalizedWhatsAppNumber()
+        if (phoneNumber == null) {
+            _uiState.update { it.copy(phoneNumberInvalid = true) }
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             val result = authRepository.register(
                 name = currentState.name.trim(),
                 email = currentState.email.trim(),
                 password = currentState.password,
+                phoneNumber = phoneNumber,
                 areaName = currentState.areaName.ifBlank { "Dinoyo, Lowokwaru, Malang" },
                 latitude = currentState.latitude,
                 longitude = currentState.longitude,

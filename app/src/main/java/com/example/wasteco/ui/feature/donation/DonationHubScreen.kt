@@ -54,6 +54,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.res.stringResource
+import com.example.wasteco.R
+import android.content.ActivityNotFoundException
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -91,7 +94,7 @@ fun DonationHubScreen(
     onCreateRequestClick: () -> Unit,
     onDonationClick: (String) -> Unit,
     onConfirmReceiptClick: (String) -> Unit,
-    onConfirmHandoverAsDonor: (String) -> Unit,
+    onRetry: () -> Unit,
     onCancelMyDonationClick: (String) -> Unit,
     onHomeTabClick: () -> Unit,
     onRecipeTabClick: () -> Unit,
@@ -181,14 +184,15 @@ fun DonationHubScreen(
                     )
                     Spacer(modifier = Modifier.width(Spacing.xxs))
                     Text(
-                        text = uiState.currentLocation,
+                        text = uiState.currentLocation.ifBlank { stringResource(R.string.profile_area_unspecified) },
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.width(Spacing.xxs))
                     Text(
-                        text = "(Ubah)",
+                        text = stringResource(R.string.profile_change_area),
+                        modifier = Modifier.clickable(onClick = onProfileClick),
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Medium,
                         color = PrimaryMain
@@ -308,6 +312,13 @@ fun DonationHubScreen(
 
             Spacer(modifier = Modifier.height(Spacing.medium))
 
+            uiState.errorMessage?.let { message ->
+                Text(message, color = MaterialTheme.colorScheme.error)
+                androidx.compose.material3.TextButton(onClick = onRetry, enabled = !uiState.isUpdating) {
+                    Text(stringResource(R.string.retry))
+                }
+            }
+
             if (uiState.isLoading) {
                 Box(
                     modifier = Modifier
@@ -384,7 +395,7 @@ fun DonationHubScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Permintaan Aktif Sekitarmu",
+                        text = stringResource(R.string.donation_active_radius, uiState.radiusKm),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
@@ -400,6 +411,9 @@ fun DonationHubScreen(
 
                 // List of Nearby Requests
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.medium)) {
+                    if (uiState.filteredNearbyDonations.isEmpty() && uiState.errorMessage == null) {
+                        Text(stringResource(if (uiState.searchQuery.isBlank()) R.string.donation_empty else R.string.donation_search_empty))
+                    }
                     uiState.filteredNearbyDonations.forEach { donation ->
                         NearbyDonationCard(
                             donation = donation,
@@ -469,7 +483,7 @@ fun DonationHubScreen(
                         onClick = { onActivityFilterSelected(ActivityFilter.REQUESTING) },
                         label = {
                             Text(
-                                text = "Sedang Meminta (${uiState.myDonations.size})",
+                                text = stringResource(R.string.donation_active_request_count, uiState.activeRequestCount),
                                 fontSize = 12.sp,
                                 fontWeight = if (uiState.selectedActivityFilter == ActivityFilter.REQUESTING) FontWeight.Bold else FontWeight.Medium
                             )
@@ -526,15 +540,13 @@ fun DonationHubScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.large)) {
                         activities.forEach { item ->
                             if (item.role == DonationRole.DONOR) {
-                                GivingDonationCard(
-                                    donation = item.donation,
-                                    onConfirmHandover = { onConfirmHandoverAsDonor(item.donation.id) }
-                                )
+                                GivingDonationCard(donation = item.donation)
                             } else {
                                 MyDonationCard(
                                     donation = item.donation,
                                     onConfirmReceipt = { onConfirmReceiptClick(item.donation.id) },
-                                    onCancel = { onCancelMyDonationClick(item.donation.id) }
+                                    onCancel = { onCancelMyDonationClick(item.donation.id) },
+                                    isUpdating = uiState.isUpdating
                                 )
                             }
                         }
@@ -684,10 +696,8 @@ private fun NearbyDonationCard(
 
 @Composable
 private fun GivingDonationCard(
-    donation: Donation,
-    onConfirmHandover: () -> Unit
+    donation: Donation
 ) {
-    val context = LocalContext.current
 
     Card(
         modifier = Modifier
@@ -751,7 +761,7 @@ private fun GivingDonationCard(
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            text = if (donation.step >= 3) "Selesai" else "Menunggu Penyerahan",
+                            text = stringResource(donationStatusLabel(donation.status)),
                             color = if (donation.step >= 3) PrimaryDarker else Color(0xFFE87A24),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
@@ -784,6 +794,11 @@ private fun GivingDonationCard(
             }
 
             Column(modifier = Modifier.padding(Spacing.medium)) {
+                if (donation.status == "cancelled") {
+                    Text(stringResource(R.string.donation_status_cancelled))
+                    return@Column
+                }
+
                 // Recipient Info Banner
                 Row(
                     modifier = Modifier
@@ -900,46 +915,11 @@ private fun GivingDonationCard(
 
                 Spacer(modifier = Modifier.height(Spacing.medium))
 
-                // WhatsApp Contact Button
-                Button(
-                    onClick = {
-                        val cleanPhone = donation.whatsappNumber.replace("+", "").replace(" ", "").replace("-", "")
-                        val uri = Uri.parse("https://api.whatsapp.com/send?phone=$cleanPhone&text=Halo%20${donation.user.name},%20saya%20sudah%20menyiapkan%20donasi%20bahan%20dari%20WasteCo.")
-                        val intent = Intent(Intent.ACTION_VIEW, uri)
-                        context.startActivity(intent)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(44.dp),
-                    shape = RoundedCornerShape(Radius.medium),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF25D366),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Chat,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(Spacing.compact))
-                    Text(
-                        text = "Hubungi Penerima via WhatsApp",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                if (donation.step < 3) {
-                    Spacer(modifier = Modifier.height(Spacing.compact))
-
-                    // Mark Handed Over
-                    WasteCoPrimaryButton(
-                        text = "Konfirmasi Bahan Sudah Diserahkan",
-                        onClick = onConfirmHandover,
-                        leadingIcon = Icons.Default.Check
-                    )
-                }
+                DonationDirectionsButton(donation)
+                DonationWhatsAppButton(
+                    url = donation.user.whatsappUrl,
+                    label = stringResource(R.string.donation_contact_requester)
+                )
             }
         }
     }
@@ -949,7 +929,8 @@ private fun GivingDonationCard(
 private fun MyDonationCard(
     donation: Donation,
     onConfirmReceipt: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    isUpdating: Boolean
 ) {
     Card(
         modifier = Modifier
@@ -1055,8 +1036,13 @@ private fun MyDonationCard(
             }
 
             Column(modifier = Modifier.padding(Spacing.medium)) {
-                val hasDonor = donation.donor != null && donation.step >= 2
-                val isCompleted = donation.step >= 3 || donation.status == "completed"
+                if (donation.status == "cancelled") {
+                    Text(stringResource(R.string.donation_status_cancelled))
+                    return@Column
+                }
+
+                val hasDonor = donation.donor != null
+                val isCompleted = donation.status == "received"
 
                 // Dynamic Status Banner based on Lifecycle
                 if (isCompleted) {
@@ -1257,8 +1243,12 @@ private fun MyDonationCard(
 
                 Spacer(modifier = Modifier.height(Spacing.medium))
 
-                // Action Buttons: Only show "Sudah Saya Terima" if donor has accepted and handed over (step 2)
-                if (hasDonor && !isCompleted) {
+                DonationWhatsAppButton(
+                    url = donation.donor?.whatsappUrl,
+                    label = stringResource(R.string.donation_contact_donor)
+                )
+
+                if (donation.status == "handed_over") {
                     WasteCoPrimaryButton(
                         text = "Sudah Saya Terima",
                         onClick = onConfirmReceipt,
@@ -1267,10 +1257,10 @@ private fun MyDonationCard(
                     Spacer(modifier = Modifier.height(Spacing.compact))
                 }
 
-                // If not completed yet, allow cancelling
-                if (!isCompleted) {
+                if (donation.status == "open" || donation.status == "handed_over") {
                     Button(
                         onClick = onCancel,
+                        enabled = !isUpdating,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),
@@ -1295,5 +1285,54 @@ private fun MyDonationCard(
                 }
             }
         }
+    }
+}
+
+internal fun donationStatusLabel(status: String): Int = when (status) {
+    "handed_over" -> R.string.donation_status_handed_over
+    "received" -> R.string.donation_status_received
+    "cancelled" -> R.string.donation_status_cancelled
+    else -> R.string.donation_status_open
+}
+
+@Composable
+internal fun DonationWhatsAppButton(url: String?, label: String) {
+    if (url.isNullOrBlank()) return
+    val context = LocalContext.current
+    androidx.compose.material3.OutlinedButton(
+        onClick = {
+            try {
+                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+            } catch (_: ActivityNotFoundException) {
+                Unit
+            }
+        },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(label)
+    }
+}
+
+@Composable
+internal fun DonationDirectionsButton(donation: Donation) {
+    val context = LocalContext.current
+    androidx.compose.material3.OutlinedButton(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = {
+            val coordinates = "${donation.latitude},${donation.longitude}"
+            val location = Uri.parse("geo:$coordinates?q=$coordinates(${Uri.encode(donation.meetingPoint)})")
+            try {
+                context.startActivity(Intent(Intent.ACTION_VIEW, location))
+            } catch (_: ActivityNotFoundException) {
+                val browser = Uri.parse("https://www.google.com/maps/search/?api=1&query=$coordinates")
+                try {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, browser))
+                } catch (_: ActivityNotFoundException) {
+                    Unit
+                }
+            }
+        }
+    ) {
+        Text(stringResource(R.string.donation_directions))
     }
 }

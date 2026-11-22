@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.wasteco.WasteCoApplication
-import com.example.wasteco.data.repository.PantryRepository
 import com.example.wasteco.data.repository.RecipeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,38 +15,25 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class RecipeListViewModel(
-    private val recipeRepository: RecipeRepository,
-    private val pantryRepository: PantryRepository
+    private val recipeRepository: RecipeRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RecipeListUiState())
     val uiState: StateFlow<RecipeListUiState> = _uiState.asStateFlow()
 
+    private var requestedIngredientIds: List<String>? = null
+
+    fun loadRecipes(ingredientIds: List<String>) {
+        if (requestedIngredientIds != ingredientIds) generateRecipes(ingredientIds)
+    }
+
     fun generateRecipes(ingredientIds: List<String>) {
+        if (_uiState.value.isLoading) return
+        requestedIngredientIds = ingredientIds.toList()
+        _uiState.update { it.copy(isLoading = true, errorMessage = null, recipes = emptyList()) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            // If empty, fetch all pantry items first
-            val finalIngredientIds = if (ingredientIds.isEmpty()) {
-                val pantryRes = pantryRepository.getPantryIngredients()
-                pantryRes.getOrNull()?.map { it.id } ?: emptyList()
-            } else {
-                ingredientIds
-            }
-
-            if (finalIngredientIds.isEmpty()) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "Tidak ada bahan di pantry. Tambahkan bahan makanan terlebih dahulu!"
-                    )
-                }
-                return@launch
-            }
-
-            val result = recipeRepository.generateRecipes(
-                ingredientIds = finalIngredientIds
-            )
+            val result = recipeRepository.generateRecipes(ingredientIds)
             result.onSuccess { recipes ->
                 _uiState.update { it.copy(recipes = recipes, isLoading = false) }
             }.onFailure { error ->
@@ -61,8 +47,7 @@ class RecipeListViewModel(
             initializer {
                 val app = (this[APPLICATION_KEY] as WasteCoApplication)
                 RecipeListViewModel(
-                    recipeRepository = app.container.recipeRepository,
-                    pantryRepository = app.container.pantryRepository
+                    recipeRepository = app.container.recipeRepository
                 )
             }
         }

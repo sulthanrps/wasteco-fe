@@ -11,12 +11,14 @@ interface AuthRepository {
         name: String,
         email: String,
         password: String,
+        phoneNumber: String,
         areaName: String,
-        latitude: Double = -7.9528,
-        longitude: Double = 112.6074,
+        latitude: Double = 0.0,
+        longitude: Double = 0.0,
         sharingRadiusKm: Int = 3
     ): Result<User>
     suspend fun getMe(): Result<User>
+    suspend fun updateProfile(user: User): Result<Unit>
 
     /**
      * Validates the stored token against the server.
@@ -24,4 +26,14 @@ interface AuthRepository {
      */
     suspend fun validateSession(): SessionState
     suspend fun logout()
+}
+
+fun String.normalizedWhatsAppNumber(): String? {
+    val compact = trim().replace(Regex("[\\s()-]"), "")
+    val international = when {
+        compact.startsWith("0") -> "+62${compact.drop(1)}"
+        compact.startsWith("+") -> compact
+        else -> "+$compact"
+    }
+    return international.takeIf { Regex("\\+[1-9][0-9]{7,14}").matches(it) }
 }

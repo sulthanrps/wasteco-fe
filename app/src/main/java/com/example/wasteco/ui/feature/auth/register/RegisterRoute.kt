@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.wasteco.ui.feature.profile.rememberDeviceLocationRequest
 
 @Composable
 fun RegisterRoute(
@@ -23,13 +24,20 @@ fun RegisterRoute(
         }
     }
 
+    val locate = rememberDeviceLocationRequest(
+        onStart = viewModel::locate,
+        onLocation = viewModel::setLocation,
+        onUnavailable = viewModel::locationUnavailable
+    )
     RegisterScreen(
         uiState = uiState,
         onNameChange = viewModel::onNameChange,
         onEmailChange = viewModel::onEmailChange,
+        onPhoneNumberChange = viewModel::onPhoneNumberChange,
         onPasswordChange = viewModel::onPasswordChange,
         onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
         onAreaNameChange = viewModel::onAreaNameChange,
+        onLocate = locate,
         onAgreementChange = viewModel::onAgreementChange,
         onRegisterClick = viewModel::onRegisterSubmit,
         onLoginClick = onLoginClick,

@@ -39,6 +39,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.res.stringResource
+import com.example.wasteco.R
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,9 +70,11 @@ fun RegisterScreen(
     uiState: RegisterUiState,
     onNameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
+    onPhoneNumberChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onConfirmPasswordChange: (String) -> Unit,
     onAreaNameChange: (String) -> Unit,
+    onLocate: () -> Unit,
     onAgreementChange: (Boolean) -> Unit,
     onRegisterClick: () -> Unit,
     onLoginClick: () -> Unit,
@@ -158,6 +164,21 @@ fun RegisterScreen(
                 errorMessage = uiState.passwordError
             )
 
+            Spacer(modifier = Modifier.height(Spacing.medium))
+            androidx.compose.material3.OutlinedTextField(
+                value = uiState.phoneNumber,
+                onValueChange = onPhoneNumberChange,
+                label = { Text(stringResource(R.string.profile_phone)) },
+                supportingText = if (uiState.phoneNumberInvalid) {
+                    { Text(stringResource(R.string.register_invalid_phone)) }
+                } else null,
+                isError = uiState.phoneNumberInvalid,
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+            )
+            Spacer(modifier = Modifier.height(Spacing.medium))
+
             // Password strength validation indicator
             Spacer(modifier = Modifier.height(Spacing.xs))
             val isPassValid = uiState.isPasswordLengthValid && uiState.isPasswordCombinationValid
@@ -213,7 +234,7 @@ fun RegisterScreen(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .clickable { /* Auto-fill GPS */ }
+                            .clickable(enabled = !uiState.isLocating, onClick = onLocate)
                             .padding(end = Spacing.small)
                     ) {
                         Icon(
@@ -224,7 +245,7 @@ fun RegisterScreen(
                         )
                         Spacer(modifier = Modifier.width(Spacing.xxs))
                         Text(
-                            text = "Via GPS",
+                            text = stringResource(if (uiState.isLocating) R.string.profile_locating else R.string.profile_use_gps),
                             style = MaterialTheme.typography.labelSmall,
                             color = PrimaryMain,
                             fontWeight = FontWeight.SemiBold
@@ -234,6 +255,10 @@ fun RegisterScreen(
             )
 
             Spacer(modifier = Modifier.height(Spacing.large))
+
+            if (uiState.locationError) {
+                Text(stringResource(R.string.register_location_unavailable), color = MaterialTheme.colorScheme.error)
+            }
 
             // Community Sharing Agreement Card
             Card(
@@ -327,9 +352,11 @@ private fun RegisterScreenPreview() {
             uiState = RegisterUiState(),
             onNameChange = {},
             onEmailChange = {},
+            onPhoneNumberChange = {},
             onPasswordChange = {},
             onConfirmPasswordChange = {},
             onAreaNameChange = {},
+            onLocate = {},
             onAgreementChange = {},
             onRegisterClick = {},
             onLoginClick = {},

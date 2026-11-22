@@ -4,7 +4,7 @@ import com.example.wasteco.domain.model.Donation
 
 data class DonationDetailUiState(
     val donation: Donation? = null,
-    val selectedItemNames: Set<String> = emptySet(),
+    val selectedItemIds: Set<String> = emptySet(),
     val showHandoverSheet: Boolean = false,
     val isSubmitting: Boolean = false,
     val isLoading: Boolean = false,

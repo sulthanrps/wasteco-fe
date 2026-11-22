@@ -4,72 +4,76 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class DonationItemDetailDto(
-    @SerialName("name") val name: String,
-    @SerialName("quantity") val quantity: String = ""
+data class DonationItemDto(
+    val id: String,
+    val name: String,
+    val quantity: Double,
+    val unit: String,
+    val selected: Boolean = false
 )
 
 @Serializable
-data class DonorUserDto(
-    @SerialName("id") val id: String? = null,
-    @SerialName("name") val name: String = "Warga WasteCo",
-    @SerialName("area_name") val areaName: String? = "Dinoyo, Malang",
-    @SerialName("photo_url") val photoUrl: String? = null,
-    @SerialName("is_verified") val isVerified: Boolean = true
+data class DonationUserDto(
+    val id: String,
+    val name: String,
+    @SerialName("area_name") val areaName: String? = null,
+    @SerialName("whatsapp_number") val whatsappNumber: String? = null,
+    @SerialName("whatsapp_url") val whatsappUrl: String? = null
 )
 
 @Serializable
 data class DonationDto(
-    @SerialName("id") val id: String,
-    @SerialName("title") val title: String,
-    @SerialName("category") val category: String? = null,
-    @SerialName("quantity") val quantity: Double? = null,
-    @SerialName("unit") val unit: String? = null,
-    @SerialName("items_summary") val itemsSummary: String? = null,
-    @SerialName("items") val items: List<DonationItemDetailDto> = emptyList(),
-    @SerialName("condition_note") val conditionNote: String? = null,
-    @SerialName("storage_method") val storageMethod: String? = null,
-    @SerialName("pickup_deadline") val pickupDeadline: String? = null,
-    @SerialName("area_name") val areaName: String? = "Dinoyo, Malang",
-    @SerialName("meeting_point") val meetingPoint: String? = null,
-    @SerialName("latitude") val latitude: Double? = -7.9535,
-    @SerialName("longitude") val longitude: Double? = 112.608,
-    @SerialName("distance_meters") val distanceMeters: Int? = 800,
-    @SerialName("distance_desc") val distanceDesc: String? = null,
-    @SerialName("whatsapp_number") val whatsappNumber: String? = null,
-    @SerialName("estimated_price") val estimatedPrice: Int? = 0,
-    @SerialName("estimated_portions") val estimatedPortions: Int? = 2,
-    @SerialName("photo_url") val photoUrl: String? = null,
-    @SerialName("status") val status: String = "active",
-    @SerialName("step") val step: Int = 1,
+    val id: String,
+    val title: String,
+    val note: String? = null,
+    val items: List<DonationItemDto> = emptyList(),
+    @SerialName("area_name") val areaName: String? = null,
+    @SerialName("meeting_point") val meetingPoint: String,
+    val latitude: Double,
+    val longitude: Double,
+    @SerialName("receive_start") val receiveStart: String,
+    @SerialName("receive_end") val receiveEnd: String,
+    @SerialName("formatted_distance") val formattedDistance: String? = null,
+    val status: String,
     @SerialName("created_at") val createdAt: String? = null,
-    @SerialName("created_time_ago") val createdTimeAgo: String? = "1 jam lalu",
-    @SerialName("user") val user: DonorUserDto? = null,
-    @SerialName("donor") val donor: DonorUserDto? = null
+    val requester: DonationUserDto,
+    val donor: DonationUserDto? = null
 )
 
 @Serializable
-data class DonationListPayloadDto(
-    @SerialName("total") val total: Int = 0,
-    @SerialName("donations") val donations: List<DonationDto> = emptyList()
+data class DonationListPayloadDto(val donations: List<DonationDto>)
+
+@Serializable
+data class DonationListResponse(val payload: DonationListPayloadDto)
+
+@Serializable
+data class DonationActivityPayloadDto(
+    val active: List<DonationDto>,
+    val history: List<DonationDto>
 )
 
 @Serializable
-data class DonationListResponse(
-    @SerialName("payload") val payload: DonationListPayloadDto
+data class DonationActivityResponse(val payload: DonationActivityPayloadDto)
+
+@Serializable
+data class DonationDetailPayloadDto(val donation: DonationDto)
+
+@Serializable
+data class DonationDetailResponse(val payload: DonationDetailPayloadDto)
+
+@Serializable
+data class DonationRequestItemDto(val name: String, val quantity: Double, val unit: String)
+
+@Serializable
+data class CreateDonationRequest(
+    val items: List<DonationRequestItemDto>,
+    @SerialName("area_name") val areaName: String?,
+    @SerialName("meeting_point") val meetingPoint: String,
+    val latitude: Double,
+    val longitude: Double,
+    @SerialName("receive_start") val receiveStart: String,
+    @SerialName("receive_end") val receiveEnd: String
 )
 
 @Serializable
-data class DonationDetailPayloadDto(
-    @SerialName("donation") val donation: DonationDto
-)
-
-@Serializable
-data class DonationDetailResponse(
-    @SerialName("payload") val payload: DonationDetailPayloadDto
-)
-
-@Serializable
-data class DonationActionResponse(
-    @SerialName("message") val message: String? = null
-)
+data class FulfillDonationRequest(@SerialName("item_ids") val itemIds: List<String>)

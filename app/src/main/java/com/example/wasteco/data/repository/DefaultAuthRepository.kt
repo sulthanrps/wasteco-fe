@@ -6,6 +6,7 @@ import com.example.wasteco.data.remote.api.AuthApiService
 import com.example.wasteco.data.remote.dto.ErrorResponse
 import com.example.wasteco.data.remote.dto.LoginRequest
 import com.example.wasteco.data.remote.dto.RegisterRequest
+import com.example.wasteco.data.remote.dto.UpdateProfileRequest
 import com.example.wasteco.domain.model.SessionState
 import com.example.wasteco.domain.model.User
 import kotlinx.coroutines.CancellationException
@@ -46,6 +47,7 @@ class DefaultAuthRepository(
         name: String,
         email: String,
         password: String,
+        phoneNumber: String,
         areaName: String,
         latitude: Double,
         longitude: Double,
@@ -56,6 +58,7 @@ class DefaultAuthRepository(
                 name = name,
                 email = email,
                 password = password,
+                phoneNumber = phoneNumber,
                 areaName = areaName,
                 latitude = latitude,
                 longitude = longitude,
@@ -92,6 +95,28 @@ class DefaultAuthRepository(
             Result.failure(Exception("Koneksi gagal. Periksa jaringan internet Anda."))
         } catch (e: Exception) {
             Result.failure(Exception(e.message ?: "Terjadi kesalahan yang tidak terduga"))
+        }
+    }
+
+    override suspend fun updateProfile(user: User): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val response = authApiService.updateProfile(
+                UpdateProfileRequest(
+                    name = user.name,
+                    phoneNumber = user.phoneNumber,
+                    areaName = user.areaName,
+                    latitude = user.latitude,
+                    longitude = user.longitude,
+                    sharingRadiusKm = user.sharingRadiusKm
+                )
+            )
+            if (response.isSuccessful) Result.success(Unit) else {
+                Result.failure(IllegalStateException(parseErrorMessage(response.errorBody()?.string())))
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

@@ -12,7 +12,8 @@ data class GenerateRecipeRequest(
 @Serializable
 data class RecipeIngredientItemDto(
     @SerialName("name") val name: String,
-    @SerialName("quantity") val quantity: String = ""
+    @SerialName("quantity") val quantity: String = "",
+    @SerialName("ingredient_id") val ingredientId: String? = null
 )
 
 @Serializable
@@ -52,8 +53,8 @@ data class RecipeListResponse(
 data class UsedIngredientDto(
     @SerialName("ingredient_id") val ingredientId: String? = null,
     @SerialName("name") val name: String,
-    @SerialName("quantity") val quantity: Double = 1.0,
-    @SerialName("unit") val unit: String = "porsi",
+    @SerialName("quantity") val quantity: Double,
+    @SerialName("unit") val unit: String,
     @SerialName("estimated_price") val estimatedPrice: Int? = 0
 )
 

@@ -14,9 +14,19 @@ data class RegisterRequest(
     @SerialName("name") val name: String,
     @SerialName("email") val email: String,
     @SerialName("password") val password: String,
-    @SerialName("phone_number") val phoneNumber: String = "+6281234567890",
+    @SerialName("phone_number") val phoneNumber: String,
     @SerialName("area_name") val areaName: String,
-    @SerialName("latitude") val latitude: Double = -7.9528,
-    @SerialName("longitude") val longitude: Double = 112.6074,
-    @SerialName("sharing_radius_km") val sharingRadiusKm: Int = 3
+    @SerialName("latitude") val latitude: Double,
+    @SerialName("longitude") val longitude: Double,
+    @SerialName("sharing_radius_km") val sharingRadiusKm: Int
+)
+
+@Serializable
+data class UpdateProfileRequest(
+    val name: String,
+    @SerialName("phone_number") val phoneNumber: String,
+    @SerialName("area_name") val areaName: String,
+    val latitude: Double,
+    val longitude: Double,
+    @SerialName("sharing_radius_km") val sharingRadiusKm: Int
 )

@@ -47,17 +47,20 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.res.stringResource
+import com.example.wasteco.R
+import com.example.wasteco.ui.feature.donation.DonationDirectionsButton
+import com.example.wasteco.ui.feature.donation.DonationWhatsAppButton
+import com.example.wasteco.ui.feature.donation.donationStatusLabel
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.example.wasteco.domain.model.Donation
 import com.example.wasteco.ui.components.WasteCoLogoBadge
 import com.example.wasteco.ui.components.WasteCoPrimaryButton
@@ -82,7 +85,8 @@ fun DonationDetailScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // S11A Modal Bottom Sheet (Bahan Siap Diserahkan)
-    if (uiState.showHandoverSheet) {
+    val handedOver = uiState.donation
+    if (uiState.showHandoverSheet && handedOver != null) {
         ModalBottomSheet(
             onDismissRequest = onDismissHandoverSheet,
             sheetState = sheetState,
@@ -115,7 +119,7 @@ fun DonationDetailScreen(
                 Spacer(modifier = Modifier.height(Spacing.large))
 
                 Text(
-                    text = "Terima kasih, Affan!",
+                    text = stringResource(R.string.donation_handover_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -124,15 +128,22 @@ fun DonationDetailScreen(
 
                 Spacer(modifier = Modifier.height(Spacing.compact))
 
-                val requesterFirstName = uiState.donation?.user?.name?.split(" ")?.firstOrNull() ?: "Peminta"
-                val meetingLoc = uiState.donation?.meetingPoint ?: "Depan Minimarket Dinoyo"
-                val meetingTime = uiState.donation?.pickupDeadline ?: "hari ini, pukul 16.00 – 19.00"
-
                 Text(
-                    text = "Antar ${uiState.selectedItemNames.size} bahan ke titik lokasi $requesterFirstName:\n$meetingLoc,\n$meetingTime",
+                    text = stringResource(
+                        R.string.donation_handover_instructions,
+                        handedOver.items.count { it.selected },
+                        handedOver.user.name,
+                        handedOver.meetingPoint,
+                        handedOver.pickupDeadline
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
+                )
+                DonationDirectionsButton(handedOver)
+                DonationWhatsAppButton(
+                    url = handedOver.user.whatsappUrl,
+                    label = stringResource(R.string.donation_contact_requester)
                 )
 
                 Spacer(modifier = Modifier.height(Spacing.xlarge))
@@ -209,7 +220,7 @@ fun DonationDetailScreen(
             )
         },
         bottomBar = {
-            if (uiState.donation != null) {
+            if (uiState.donation?.status == "open") {
                 Surface(
                     color = MaterialTheme.colorScheme.surface,
                     tonalElevation = Elevation.small,
@@ -220,7 +231,7 @@ fun DonationDetailScreen(
                             .fillMaxWidth()
                             .padding(horizontal = Spacing.large, vertical = Spacing.medium)
                     ) {
-                        val count = uiState.selectedItemNames.size
+                        val count = uiState.selectedItemIds.size
                         WasteCoPrimaryButton(
                             text = if (count > 0) "Serahkan $count Bahan Terpilih" else "Pilih Bahan yang Diserahkan",
                             onClick = onSubmitHandover,
@@ -248,7 +259,7 @@ fun DonationDetailScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Permintaan donasi tidak ditemukan",
+                    text = uiState.errorMessage ?: stringResource(R.string.donation_not_found),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -262,72 +273,9 @@ fun DonationDetailScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = Spacing.large, vertical = Spacing.small)
             ) {
-                // Header Image with Badges (S11)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(210.dp)
-                        .clip(RoundedCornerShape(Radius.large))
-                ) {
-                    AsyncImage(
-                        model = donation.photoUrl,
-                        contentDescription = donation.title,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-
-                    // Bottom Floating Badges
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(Spacing.medium),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.compact)
-                    ) {
-                        // "Aktif" Badge
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(PrimaryDarker)
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(6.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0xFF4CAF50))
-                                )
-                                Text(
-                                    text = "Aktif",
-                                    color = Color.White,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-
-                        // Item Count Badge
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color.White)
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = "${donation.items.size} item",
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
+                uiState.errorMessage?.let { message ->
+                    Text(message, color = MaterialTheme.colorScheme.error)
                 }
-
-                Spacer(modifier = Modifier.height(Spacing.medium))
-
                 // Card 1: Request Overview
                 Card(
                     modifier = Modifier
@@ -344,7 +292,7 @@ fun DonationDetailScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Permintaan Bahan",
+                                text = stringResource(donationStatusLabel(donation.status)),
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = PrimaryMain
@@ -367,11 +315,13 @@ fun DonationDetailScreen(
 
                         Spacer(modifier = Modifier.height(Spacing.xs))
 
-                        Text(
-                            text = donation.conditionNote.ifBlank { "Untuk masak makan malam keluarga. Bantu sebagian item juga boleh." },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        if (donation.conditionNote.isNotBlank()) {
+                            Text(
+                                text = donation.conditionNote,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
 
@@ -463,7 +413,7 @@ fun DonationDetailScreen(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        text = "Jl. MT Haryono • ${donation.distanceDesc} dari lokasimu",
+                                        text = donation.distanceDesc,
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -497,30 +447,11 @@ fun DonationDetailScreen(
 
                         Spacer(modifier = Modifier.height(Spacing.medium))
 
-                        // "Hubungi via Whatsapp" Button
-                        Button(
-                            onClick = {},
-                            shape = RoundedCornerShape(Radius.medium),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = PrimaryDarker,
-                                contentColor = Color.White
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(46.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.Chat,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(Spacing.compact))
-                            Text(
-                                text = "Hubungi via Whatsapp",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        DonationDirectionsButton(donation)
+                        DonationWhatsAppButton(
+                            url = donation.user.whatsappUrl,
+                            label = stringResource(R.string.donation_contact_requester)
+                        )
                     }
                 }
 
@@ -555,18 +486,19 @@ fun DonationDetailScreen(
                         Spacer(modifier = Modifier.height(Spacing.compact))
 
                         donation.items.forEach { item ->
-                            val isChecked = uiState.selectedItemNames.contains(item.name)
+                            val isChecked = uiState.selectedItemIds.contains(item.id)
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(Radius.small))
-                                    .clickable { onToggleItem(item.name) }
+                                    .clickable(enabled = donation.status == "open" && !uiState.isSubmitting) { onToggleItem(item.id) }
                                     .padding(vertical = Spacing.xxs),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Checkbox(
                                     checked = isChecked,
-                                    onCheckedChange = { onToggleItem(item.name) },
+                                    onCheckedChange = { onToggleItem(item.id) },
+                                    enabled = donation.status == "open" && !uiState.isSubmitting,
                                     colors = CheckboxDefaults.colors(
                                         checkedColor = PrimaryDarker,
                                         checkmarkColor = Color.White

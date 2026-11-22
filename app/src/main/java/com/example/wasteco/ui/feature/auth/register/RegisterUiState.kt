@@ -4,16 +4,20 @@ data class RegisterUiState(
     val name: String = "",
     val nameError: String? = null,
     val email: String = "",
+    val phoneNumber: String = "",
+    val phoneNumberInvalid: Boolean = false,
     val emailError: String? = null,
     val password: String = "",
     val passwordError: String? = null,
     val confirmPassword: String = "",
     val confirmPasswordError: String? = null,
-    val areaName: String = "Dinoyo, Lowokwaru, Malang",
+    val areaName: String = "",
     val areaNameError: String? = null,
-    val latitude: Double = -7.9528,
-    val longitude: Double = 112.6074,
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
     val sharingRadiusKm: Int = 3,
+    val isLocating: Boolean = false,
+    val locationError: Boolean = false,
     val isAgreementChecked: Boolean = false,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
@@ -29,6 +33,8 @@ data class RegisterUiState(
         get() = name.isNotBlank() &&
                 email.isNotBlank() &&
                 emailError == null &&
+                phoneNumber.isNotBlank() &&
+                areaName.isNotBlank() &&
                 password.isNotBlank() &&
                 passwordError == null &&
                 confirmPassword.isNotBlank() &&

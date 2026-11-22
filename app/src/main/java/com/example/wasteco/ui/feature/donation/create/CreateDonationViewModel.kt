@@ -6,9 +6,16 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.wasteco.R
 import com.example.wasteco.WasteCoApplication
 import com.example.wasteco.data.repository.DonationRepository
-import com.example.wasteco.domain.model.DonationItem
+import com.example.wasteco.domain.model.DonationRequest
+import com.example.wasteco.domain.model.DonationRequestItem
+import com.example.wasteco.data.repository.AuthRepository
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,11 +23,25 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class CreateDonationViewModel(
-    private val donationRepository: DonationRepository
+    private val donationRepository: DonationRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateDonationUiState())
     val uiState: StateFlow<CreateDonationUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            authRepository.getMe().onSuccess { user ->
+                _uiState.update { state ->
+                    if (state.hasLocation || user.latitude == 0.0 && user.longitude == 0.0) state else {
+                        state.copy(latitude = user.latitude, longitude = user.longitude,
+                            areaName = user.areaName, hasLocation = true)
+                    }
+                }
+            }
+        }
+    }
 
     fun onIngredientNameChange(name: String) {
         _uiState.update { it.copy(inputIngredientName = name) }
@@ -42,6 +63,7 @@ class CreateDonationViewModel(
         _uiState.update {
             it.copy(
                 latitude = lat,
+                hasLocation = true,
                 longitude = lng,
                 areaName = areaName ?: it.areaName,
                 isGpsLoading = false
@@ -53,27 +75,37 @@ class CreateDonationViewModel(
         _uiState.update { it.copy(isGpsLoading = loading) }
     }
 
-    fun onPickupTimeChange(time: String) {
-        _uiState.update { it.copy(pickupTime = time) }
+    fun onReceiveStartChange(time: LocalDateTime) {
+        _uiState.update { it.copy(receiveStart = time, errorResource = it.errorResource.takeUnless { it == R.string.donation_invalid_time }) }
+    }
+
+    fun onReceiveEndChange(time: LocalDateTime) {
+        _uiState.update { it.copy(receiveEnd = time, errorResource = it.errorResource.takeUnless { it == R.string.donation_invalid_time }) }
     }
 
     fun addIngredientToList() {
         val name = _uiState.value.inputIngredientName.trim()
-        val qty = _uiState.value.inputQuantity.trim()
+        val qty = _uiState.value.inputQuantity.trim().replace(',', '.').toDoubleOrNull()
         val unit = _uiState.value.inputUnit.trim()
 
-        if (name.isBlank()) return
+        if (name.isBlank() || qty == null || !qty.isFinite() || qty <= 0 || unit.isBlank()) {
+            _uiState.update { it.copy(errorMessage = null, errorResource = R.string.donation_invalid_item) }
+            return
+        }
 
-        val newItem = DonationItem(name = name, quantity = "$qty $unit")
+        val newItem = DonationRequestItem(name, qty, unit)
         _uiState.update {
             it.copy(
                 addedItems = it.addedItems + newItem,
-                inputIngredientName = ""
+                inputIngredientName = "",
+                inputQuantity = "",
+                errorMessage = null,
+                errorResource = null
             )
         }
     }
 
-    fun removeIngredient(item: DonationItem) {
+    fun removeIngredient(item: DonationRequestItem) {
         _uiState.update {
             it.copy(addedItems = it.addedItems - item)
         }
@@ -81,35 +113,36 @@ class CreateDonationViewModel(
 
     fun submitRequest() {
         val state = _uiState.value
+        if (state.isSubmitting || state.isSuccess) return
         if (state.addedItems.isEmpty()) {
-            _uiState.update { it.copy(errorMessage = "Tambahkan minimal satu bahan terlebih dahulu") }
+            _uiState.update { it.copy(errorMessage = null, errorResource = R.string.donation_empty_items) }
+            return
+        }
+
+        val zone = ZoneId.systemDefault()
+        val start = state.receiveStart?.atZone(zone)
+        val end = state.receiveEnd?.atZone(zone)
+        if (!state.hasLocation || state.meetingPoint.isBlank()) {
+            _uiState.update { it.copy(errorMessage = null, errorResource = R.string.donation_invalid_location) }
+            return
+        }
+        if (start == null || end == null || !end.isAfter(start) || !end.toInstant().isAfter(Instant.now())) {
+            _uiState.update { it.copy(errorMessage = null, errorResource = R.string.donation_invalid_time) }
             return
         }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
-            val firstItem = state.addedItems.first()
-            val title = if (state.addedItems.size > 1) {
-                "${firstItem.name} & Lainnya"
-            } else {
-                firstItem.name
-            }
-
+            _uiState.update { it.copy(isSubmitting = true, errorMessage = null, errorResource = null) }
             val result = donationRepository.createDonation(
-                title = title,
-                category = "Sayuran & Bumbu",
-                quantity = state.addedItems.size.toDouble(),
-                unit = "item",
-                conditionNote = "Bahan diminta oleh warga sekitar.",
-                storageMethod = "Segar",
-                pickupDeadline = state.pickupTime,
-                areaName = state.areaName,
-                meetingPoint = state.meetingPoint,
-                latitude = state.latitude,
-                longitude = state.longitude,
-                whatsappNumber = "+6281358902144",
-                estimatedPrice = 15000,
-                estimatedPortions = state.addedItems.size
+                DonationRequest(
+                    items = state.addedItems,
+                    areaName = state.areaName.trim().ifBlank { null },
+                    meetingPoint = state.meetingPoint.trim(),
+                    latitude = state.latitude,
+                    longitude = state.longitude,
+                    receiveStart = start.toOffsetDateTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+                    receiveEnd = end.toOffsetDateTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                )
             )
 
             result.onSuccess {
@@ -125,7 +158,8 @@ class CreateDonationViewModel(
             initializer {
                 val app = (this[APPLICATION_KEY] as WasteCoApplication)
                 CreateDonationViewModel(
-                    donationRepository = app.container.donationRepository
+                    donationRepository = app.container.donationRepository,
+                    authRepository = app.container.authRepository
                 )
             }
         }

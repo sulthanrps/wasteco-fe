@@ -40,6 +40,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.res.stringResource
+import com.example.wasteco.R
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -166,17 +168,16 @@ fun RecipeListScreen(
                     Spacer(modifier = Modifier.height(Spacing.large))
                     WasteCoPrimaryButton(text = "Coba Lagi", onClick = onRetryClick)
                 }
+            } else if (uiState.recipes.isEmpty()) {
+                Text(stringResource(R.string.recipe_empty))
             } else {
-                // If backend returned empty or for showcase, fallback to rich items matching Figma S06
-                val displayRecipes = if (uiState.recipes.isNotEmpty()) uiState.recipes else sampleSmartRecipes
-
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.large)) {
-                    displayRecipes.forEachIndexed { index, recipe ->
+                    uiState.recipes.forEachIndexed { index, recipe ->
                         SmartRecipeFigmaCard(
                             recipe = recipe,
                             isTopMatch = index == 0,
-                            availableCount = if (index == 0) 3 else if (index == 1) 2 else 1,
-                            totalNeeded = if (index == 0) 5 else 4,
+                            availableCount = recipe.usedIngredients.size,
+                            totalNeeded = recipe.usedIngredients.size + recipe.additionalIngredients.size,
                             onClick = { onRecipeClick(recipe.id) }
                         )
                     }
@@ -334,7 +335,7 @@ fun SmartRecipeFigmaCard(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.CheckCircle, contentDescription = null, tint = PrimaryDarker, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(Spacing.small))
-                            val pantryNames = if (recipe.usedIngredients.isNotEmpty()) recipe.usedIngredients.joinToString(", ") { it.name } else "Nasi, Telur, Wortel"
+                            val pantryNames = if (recipe.usedIngredients.isNotEmpty()) recipe.usedIngredients.joinToString(", ") { it.name } else stringResource(R.string.recipe_no_ingredients)
                             Text(
                                 text = "Ada di dapurmu: $pantryNames",
                                 style = MaterialTheme.typography.bodySmall,
@@ -349,7 +350,7 @@ fun SmartRecipeFigmaCard(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(Spacing.small))
-                            val addNames = if (recipe.additionalIngredients.isNotEmpty()) recipe.additionalIngredients.joinToString(", ") else "Bawang putih, Minyak goreng"
+                            val addNames = if (recipe.additionalIngredients.isNotEmpty()) recipe.additionalIngredients.joinToString(", ") else stringResource(R.string.recipe_no_ingredients)
                             Text(
                                 text = "Perlu Ditambahkan: $addNames",
                                 style = MaterialTheme.typography.bodySmall,

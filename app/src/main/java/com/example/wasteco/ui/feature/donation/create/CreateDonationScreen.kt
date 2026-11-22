@@ -1,5 +1,8 @@
 package com.example.wasteco.ui.feature.donation.create
 
+import androidx.compose.ui.res.stringResource
+import com.example.wasteco.R
+import com.example.wasteco.ui.feature.donation.map.leafletDocument
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
@@ -19,6 +22,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,7 +49,15 @@ import androidx.compose.material.icons.filled.NearMe
 import androidx.compose.material.icons.filled.RiceBowl
 import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -68,6 +81,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -80,7 +94,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import com.example.wasteco.domain.model.DonationItem
+import com.example.wasteco.domain.model.DonationRequestItem
 import com.example.wasteco.ui.components.WasteCoLogoBadge
 import com.example.wasteco.ui.components.WasteCoPrimaryButton
 import com.example.wasteco.ui.theme.Elevation
@@ -92,6 +106,11 @@ import com.example.wasteco.ui.theme.Spacing
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 private const val LEAFLET_PICKER_HTML = """
@@ -100,7 +119,7 @@ private const val LEAFLET_PICKER_HTML = """
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <!-- leaflet-styles -->
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: #EBF2EB; }
@@ -127,7 +146,7 @@ private const val LEAFLET_PICKER_HTML = """
 </head>
 <body>
     <div id="map"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <!-- leaflet-script -->
     <script>
         var map = null;
         var pinMarker = null;
@@ -198,9 +217,10 @@ fun CreateDonationScreen(
     onMeetingPointChange: (String) -> Unit,
     onLocationChange: (Double, Double, String?) -> Unit,
     onGpsLoadingChanged: (Boolean) -> Unit,
-    onPickupTimeChange: (String) -> Unit,
+    onReceiveStartChange: (LocalDateTime) -> Unit,
+    onReceiveEndChange: (LocalDateTime) -> Unit,
     onAddIngredient: () -> Unit,
-    onRemoveIngredient: (DonationItem) -> Unit,
+    onRemoveIngredient: (DonationRequestItem) -> Unit,
     onSubmit: () -> Unit,
     onSuccessFinish: () -> Unit,
     modifier: Modifier = Modifier
@@ -252,7 +272,7 @@ fun CreateDonationScreen(
     }
 
     Scaffold(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().imePadding(),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
@@ -288,11 +308,20 @@ fun CreateDonationScreen(
                 tonalElevation = Elevation.small,
                 shadowElevation = Elevation.small
             ) {
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = Spacing.large, vertical = Spacing.medium)
+                        .padding(horizontal = Spacing.large, vertical = Spacing.medium),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.small)
                 ) {
+                    val error = uiState.errorResource?.let { stringResource(it) } ?: uiState.errorMessage
+                    if (error != null) {
+                        Text(
+                            text = error,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                     WasteCoPrimaryButton(
                         text = if (uiState.isSubmitting) "Mengirimkan..." else "Kirim Permintaan",
                         onClick = onSubmit,
@@ -307,6 +336,7 @@ fun CreateDonationScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = Spacing.large, vertical = Spacing.small)
         ) {
@@ -486,7 +516,7 @@ fun CreateDonationScreen(
                                     )
                                     Spacer(modifier = Modifier.width(Spacing.compact))
                                     Text(
-                                        text = "${item.name} — ${item.quantity}",
+                                        text = "${item.name} — ${item.quantity} ${item.unit}",
                                         style = MaterialTheme.typography.bodySmall,
                                         fontWeight = FontWeight.Medium,
                                         color = MaterialTheme.colorScheme.onSurface
@@ -598,7 +628,7 @@ fun CreateDonationScreen(
                                         }
                                     }
 
-                                    loadDataWithBaseURL("https://wasteco.app", LEAFLET_PICKER_HTML, "text/html", "UTF-8", null)
+                                    loadDataWithBaseURL("https://wasteco.app", leafletDocument(context, LEAFLET_PICKER_HTML), "text/html", "UTF-8", null)
                                     webViewRef = this
                                 }
                             },
@@ -704,6 +734,7 @@ fun CreateDonationScreen(
                     OutlinedTextField(
                         value = uiState.meetingPoint,
                         onValueChange = onMeetingPointChange,
+                        label = { Text(stringResource(R.string.donation_meeting_point)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         shape = RoundedCornerShape(Radius.small),
@@ -719,7 +750,7 @@ fun CreateDonationScreen(
 
                     // Waktu Bisa Menerima
                     Text(
-                        text = "Waktu Bisa Menerima *",
+                        text = stringResource(R.string.donation_receive_window),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -727,33 +758,117 @@ fun CreateDonationScreen(
 
                     Spacer(modifier = Modifier.height(Spacing.xs))
 
-                    OutlinedTextField(
-                        value = uiState.pickupTime,
-                        onValueChange = onPickupTimeChange,
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        shape = RoundedCornerShape(Radius.small),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = Color(0xFFF7FAF7),
-                            focusedContainerColor = Color(0xFFF7FAF7),
-                            unfocusedBorderColor = Color(0xFFE5E7EB),
-                            focusedBorderColor = PrimaryMain
-                        )
+                    ReceiveDateTimeField(
+                        label = stringResource(R.string.donation_receive_start),
+                        value = uiState.receiveStart,
+                        enabled = !uiState.isSubmitting,
+                        onValueChange = onReceiveStartChange
+                    )
+                    Spacer(modifier = Modifier.height(Spacing.small))
+                    ReceiveDateTimeField(
+                        label = stringResource(R.string.donation_receive_end),
+                        value = uiState.receiveEnd,
+                        suggestedValue = uiState.receiveStart?.plusHours(1),
+                        enabled = !uiState.isSubmitting,
+                        onValueChange = onReceiveEndChange
                     )
                 }
             }
 
-            if (uiState.errorMessage != null) {
-                Spacer(modifier = Modifier.height(Spacing.medium))
-                Text(
-                    text = uiState.errorMessage,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-
             Spacer(modifier = Modifier.height(Spacing.xlarge))
         }
+    }
+}
+
+private val receiveDateTimeFormat =
+    DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm", Locale.forLanguageTag("id-ID"))
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ReceiveDateTimeField(
+    label: String,
+    value: LocalDateTime?,
+    enabled: Boolean,
+    onValueChange: (LocalDateTime) -> Unit,
+    suggestedValue: LocalDateTime? = null
+) {
+    var showCalendar by rememberSaveable { mutableStateOf(false) }
+    var pendingEpochDay by rememberSaveable { mutableStateOf<Long?>(null) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+        Text(label, style = MaterialTheme.typography.labelLarge)
+        OutlinedButton(
+            onClick = { showCalendar = true },
+            enabled = enabled,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(value?.format(receiveDateTimeFormat) ?: stringResource(R.string.donation_choose_date_time))
+        }
+    }
+
+    if (showCalendar) {
+        val initialDate = (value ?: suggestedValue)?.toLocalDate() ?: LocalDate.now()
+        val calendar = rememberDatePickerState(
+            initialSelectedDateMillis = initialDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showCalendar = false },
+            confirmButton = {
+                TextButton(
+                    enabled = calendar.selectedDateMillis != null,
+                    onClick = {
+                        calendar.selectedDateMillis?.let { millis ->
+                            pendingEpochDay = Instant.ofEpochMilli(millis)
+                                .atOffset(ZoneOffset.UTC).toLocalDate().toEpochDay()
+                            showCalendar = false
+                        }
+                    }
+                ) {
+                    Text(stringResource(R.string.donation_choose_time))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCalendar = false }) {
+                    Text(stringResource(R.string.donation_picker_cancel))
+                }
+            }
+        ) {
+            DatePicker(state = calendar, title = null, showModeToggle = false)
+        }
+    }
+
+    pendingEpochDay?.let { epochDay ->
+        val initialTime = (value ?: suggestedValue ?: LocalDateTime.now()).toLocalTime()
+        val clock = rememberTimePickerState(
+            initialHour = initialTime.hour,
+            initialMinute = initialTime.minute,
+            is24Hour = true
+        )
+        AlertDialog(
+            onDismissRequest = { pendingEpochDay = null },
+            title = { Text(label) },
+            text = {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    TimePicker(state = clock)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onValueChange(LocalDate.ofEpochDay(epochDay).atTime(clock.hour, clock.minute))
+                    pendingEpochDay = null
+                }) {
+                    Text(stringResource(R.string.donation_picker_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    pendingEpochDay = null
+                    showCalendar = true
+                }) {
+                    Text(stringResource(R.string.back))
+                }
+            }
+        )
     }
 }
 
@@ -762,7 +877,7 @@ private fun resolvePickerAddress(context: Context, lat: Double, lng: Double): St
         if (!Geocoder.isPresent()) {
             return "%.4f, %.4f".format(Locale.US, lat, lng)
         }
-        val geocoder = Geocoder(context, Locale("id", "ID"))
+        val geocoder = Geocoder(context, Locale.forLanguageTag("id-ID"))
         @Suppress("DEPRECATION")
         val addresses = geocoder.getFromLocation(lat, lng, 1)
         val addr = addresses?.firstOrNull()

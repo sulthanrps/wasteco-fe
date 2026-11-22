@@ -46,3 +46,15 @@ data class PantryItemPayloadDto(
 data class PantryItemResponse(
     @SerialName("payload") val payload: PantryItemPayloadDto
 )
+
+@Serializable
+data class ScannedIngredientDto(val name: String, val quantity: Double, val unit: String)
+
+@Serializable
+data class PantryScanPayloadDto(val ingredients: List<ScannedIngredientDto>)
+
+@Serializable
+data class PantryScanResponse(val payload: PantryScanPayloadDto)
+
+@Serializable
+data class BulkPantryRequest(val items: List<ScannedIngredientDto>)

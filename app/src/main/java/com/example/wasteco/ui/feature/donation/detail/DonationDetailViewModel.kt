@@ -21,16 +21,16 @@ class DonationDetailViewModel(
     private val _uiState = MutableStateFlow(DonationDetailUiState())
     val uiState: StateFlow<DonationDetailUiState> = _uiState.asStateFlow()
 
-    fun loadDonation(id: String) {
+    fun loadDonation(id: String, latitude: Double?, longitude: Double?) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = donationRepository.getDonationDetail(id)
+            val result = donationRepository.getDonationDetail(id, latitude, longitude)
             result.onSuccess { donation ->
-                val initialSelected = donation.items.take(2).map { it.name }.toSet()
+                val initialSelected = donation.items.filter { it.selected }.map { it.id }.toSet()
                 _uiState.update {
                     it.copy(
                         donation = donation,
-                        selectedItemNames = initialSelected,
+                        selectedItemIds = initialSelected,
                         isLoading = false
                     )
                 }
@@ -40,27 +40,31 @@ class DonationDetailViewModel(
         }
     }
 
-    fun toggleItemSelection(name: String) {
+    fun toggleItemSelection(id: String) {
         _uiState.update { state ->
-            val set = state.selectedItemNames.toMutableSet()
-            if (set.contains(name)) {
-                set.remove(name)
+            val set = state.selectedItemIds.toMutableSet()
+            if (set.contains(id)) {
+                set.remove(id)
             } else {
-                set.add(name)
+                set.add(id)
             }
-            state.copy(selectedItemNames = set)
+            state.copy(selectedItemIds = set)
         }
     }
 
     fun submitHandover() {
-        val donation = _uiState.value.donation ?: return
+        val state = _uiState.value
+        val donation = state.donation ?: return
+        if (state.isSubmitting || donation.status != "open" || state.selectedItemIds.isEmpty()) return
         viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true) }
-            donationRepository.confirmHandover(donation.id)
+            _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
+            val result = donationRepository.fulfillDonation(donation.id, state.selectedItemIds.toList())
             _uiState.update {
                 it.copy(
                     isSubmitting = false,
-                    showHandoverSheet = true
+                    donation = result.getOrDefault(donation),
+                    errorMessage = result.exceptionOrNull()?.message,
+                    showHandoverSheet = result.isSuccess
                 )
             }
         }

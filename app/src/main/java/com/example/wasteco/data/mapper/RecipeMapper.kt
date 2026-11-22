@@ -2,6 +2,7 @@ package com.example.wasteco.data.mapper
 
 import com.example.wasteco.data.remote.dto.RecipeDto
 import com.example.wasteco.data.remote.dto.RecipeIngredientItemDto
+import com.example.wasteco.domain.model.PantryItem
 import com.example.wasteco.domain.model.Recipe
 import com.example.wasteco.domain.model.UsedIngredient
 import java.util.UUID
@@ -20,7 +21,10 @@ fun RecipeIngredientItemDto.toUsedIngredient(fallbackId: String = UUID.randomUUI
     )
 }
 
-fun RecipeDto.toDomain(fallbackId: String = UUID.randomUUID().toString()): Recipe {
+fun RecipeDto.toDomain(
+    fallbackId: String = UUID.randomUUID().toString(),
+    pantryItems: List<PantryItem> = emptyList()
+): Recipe {
     val recipeId = id ?: fallbackId
     val effectiveName = recipeName ?: name ?: "Resep Cerdas WasteCo"
     val effectiveServings = portions ?: servings ?: 2
@@ -34,7 +38,23 @@ fun RecipeDto.toDomain(fallbackId: String = UUID.randomUUID().toString()): Recip
     }
 
     val mappedUsedIngredients = rawUsedIngredients.mapIndexed { idx, ing ->
-        ing.toUsedIngredient(fallbackId = "${recipeId}_ing_$idx")
+        val ingredient = ing.toUsedIngredient(fallbackId = "${recipeId}_ing_$idx")
+        val matchingItems = pantryItems.filter { item ->
+            val sameIngredient = if (ing.ingredientId != null) {
+                item.id == ing.ingredientId
+            } else {
+                item.name.trim().equals(ingredient.name.trim(), ignoreCase = true)
+            }
+            sameIngredient && item.unit.trim().equals(ingredient.unit.trim(), ignoreCase = true)
+        }
+        val pantryItem = matchingItems.singleOrNull()
+        if (pantryItem == null) ingredient.copy(estimatedPrice = 0) else {
+            ingredient.copy(
+                ingredientId = pantryItem.id,
+                unit = pantryItem.unit,
+                estimatedPrice = pantryItem.estimatedPrice
+            )
+        }
     }
 
     val mappedAdditionalIngredients = additionalIngredients.map { item ->

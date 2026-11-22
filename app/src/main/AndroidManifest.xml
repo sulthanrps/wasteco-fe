@@ -16,6 +16,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.WasteCo">
+        <provider
+            android:name=".ui.feature.recipe.camera.IngredientScanFileProvider"
+            android:authorities="${applicationId}.ingredient-scan"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/scan_file_paths" />
+        </provider>
         <activity
             android:name=".MainActivity"
             android:exported="true"

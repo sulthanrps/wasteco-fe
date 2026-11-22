@@ -2,7 +2,14 @@ package com.example.wasteco.data
 
 import com.example.wasteco.data.mapper.toDomain
 import com.example.wasteco.data.remote.dto.RecipeListResponse
+import com.example.wasteco.data.remote.dto.ConfirmCookRequest
+import com.example.wasteco.data.remote.dto.UsedIngredientDto
+import com.example.wasteco.data.repository.cookConfirmationError
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.double
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -38,5 +45,41 @@ class RecipeJsonParsingTest {
         assertEquals("minyak goreng: 2 sendok makan", recipe1.additionalIngredients[0])
         assertEquals(5, recipe1.instructions.size)
         assertNotNull(recipe1.zeroWasteTips)
+    }
+
+    @Test
+    fun cookConfirmationIncludesQuantityAndUnitForOneServingOfRice() {
+        val request = ConfirmCookRequest(
+            recipeName = "Nasi Kunyit",
+            portions = 1,
+            estimatedSavings = 0,
+            usedIngredients = listOf(
+                UsedIngredientDto(name = "Kunyit", quantity = 2.0, unit = "gram"),
+                UsedIngredientDto(name = "Nasi", quantity = 1.0, unit = "porsi")
+            )
+        )
+
+        val ingredients = json.parseToJsonElement(json.encodeToString(request))
+            .jsonObject.getValue("used_ingredients").jsonArray
+
+        assertEquals(2.0, ingredients[0].jsonObject.getValue("quantity").jsonPrimitive.double, 0.0)
+        assertEquals("gram", ingredients[0].jsonObject.getValue("unit").jsonPrimitive.content)
+        assertEquals(1.0, ingredients[1].jsonObject.getValue("quantity").jsonPrimitive.double, 0.0)
+        assertEquals("porsi", ingredients[1].jsonObject.getValue("unit").jsonPrimitive.content)
+    }
+
+    @Test
+    fun cookConfirmationUsesFieldDetailsWhenValidationFails() {
+        val body = """
+            {
+              "message": "Validation failed",
+              "details": [{"field": "used_ingredients[1].quantity", "message": "Jumlah wajib diisi"}]
+            }
+        """.trimIndent()
+
+        assertEquals(
+            "used_ingredients[1].quantity: Jumlah wajib diisi",
+            cookConfirmationError(json, 400, body)
+        )
     }
 }

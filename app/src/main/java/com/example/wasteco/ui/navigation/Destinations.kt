@@ -22,9 +22,6 @@ sealed interface Destination {
     data object CameraCapture : Destination
 
     @Serializable
-    data object ReviewPhoto : Destination
-
-    @Serializable
     data class RecipeList(val ingredientIds: List<String> = emptyList()) : Destination
 
     @Serializable
@@ -40,7 +37,7 @@ sealed interface Destination {
     data object DonationMap : Destination
 
     @Serializable
-    data class DonationDetail(val donationId: String) : Destination
+    data class DonationDetail(val donationId: String, val latitude: String? = null, val longitude: String? = null) : Destination
 
     @Serializable
     data object CreateDonation : Destination

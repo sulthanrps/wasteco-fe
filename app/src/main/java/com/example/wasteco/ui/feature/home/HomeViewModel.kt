@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.wasteco.WasteCoApplication
 import com.example.wasteco.data.repository.AuthRepository
+import com.example.wasteco.data.repository.DonationRepository
 import com.example.wasteco.data.repository.PantryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,17 +18,15 @@ import kotlinx.coroutines.launch
 
 class HomeViewModel(
     private val authRepository: AuthRepository,
-    private val pantryRepository: PantryRepository
+    private val pantryRepository: PantryRepository,
+    private val donationRepository: DonationRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    init {
-        loadHomeData()
-    }
-
     fun loadHomeData() {
+        if (_uiState.value.isLoading) return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
@@ -40,9 +39,17 @@ class HomeViewModel(
             // 2. Load Pantry Items
             val pantryResult = pantryRepository.getPantryIngredients()
             pantryResult.onSuccess { items ->
-                _uiState.update { it.copy(pantryItems = items, isLoading = false) }
+                _uiState.update { it.copy(pantryItems = items) }
             }.onFailure { error ->
-                _uiState.update { it.copy(isLoading = false, errorMessage = error.message) }
+                _uiState.update { it.copy(errorMessage = error.message) }
+            }
+            val nearby = donationRepository.getNearbyDonations()
+            _uiState.update {
+                it.copy(
+                    nearbyDonations = nearby.getOrNull().orEmpty(),
+                    nearbyError = nearby.exceptionOrNull()?.message,
+                    isLoading = false
+                )
             }
         }
     }
@@ -53,7 +60,8 @@ class HomeViewModel(
                 val app = (this[APPLICATION_KEY] as WasteCoApplication)
                 HomeViewModel(
                     authRepository = app.container.authRepository,
-                    pantryRepository = app.container.pantryRepository
+                    pantryRepository = app.container.pantryRepository,
+                    donationRepository = app.container.donationRepository
                 )
             }
         }

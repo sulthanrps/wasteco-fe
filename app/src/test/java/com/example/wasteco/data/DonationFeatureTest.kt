@@ -1,254 +1,237 @@
 package com.example.wasteco.data
 
 import com.example.wasteco.data.remote.api.DonationApiService
-import com.example.wasteco.data.remote.dto.DonationActionResponse
+import com.example.wasteco.data.remote.dto.CreateDonationRequest
+import com.example.wasteco.data.remote.dto.DonationActivityResponse
 import com.example.wasteco.data.remote.dto.DonationDetailResponse
 import com.example.wasteco.data.remote.dto.DonationListResponse
+import com.example.wasteco.data.remote.dto.FulfillDonationRequest
 import com.example.wasteco.data.repository.DefaultDonationRepository
-import com.example.wasteco.domain.model.DonationItem
+import com.example.wasteco.domain.model.DonationRequest
+import com.example.wasteco.domain.model.DonationRequestItem
 import com.example.wasteco.domain.model.DonationRole
-import com.example.wasteco.domain.model.DonationUser
-import com.example.wasteco.domain.model.Donation
 import com.example.wasteco.ui.feature.donation.ActivityFilter
-import com.example.wasteco.ui.feature.donation.DonationActivityItem
 import com.example.wasteco.ui.feature.donation.DonationHubUiState
-import com.example.wasteco.ui.feature.donation.map.DonationMapUiState
 import com.example.wasteco.ui.feature.donation.create.CreateDonationUiState
+import com.example.wasteco.ui.feature.donation.map.DonationMapUiState
 import kotlinx.coroutines.runBlocking
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
+import kotlinx.serialization.json.Json
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
 
-class FakeDonationApiService : DonationApiService {
-    override suspend fun getNearbyDonations(
-        latitude: Double?,
-        longitude: Double?,
-        radius: Int?,
-        category: String?,
-        search: String?
-    ): Response<DonationListResponse> = Response.error(
-        500,
-        "{\"message\":\"Server error\"}".toResponseBody("application/json".toMediaTypeOrNull())
-    )
-
-    override suspend fun getMyDonations(): Response<DonationListResponse> = Response.error(
-        500,
-        "{\"message\":\"Server error\"}".toResponseBody("application/json".toMediaTypeOrNull())
-    )
-
-    override suspend fun getDonationDetail(
-        id: String,
-        latitude: Double?,
-        longitude: Double?
-    ): Response<DonationDetailResponse> = Response.error(
-        404,
-        "{\"message\":\"Not found\"}".toResponseBody("application/json".toMediaTypeOrNull())
-    )
-
-    override suspend fun createDonation(
-        partMap: Map<String, RequestBody>,
-        photo: MultipartBody.Part?
-    ): Response<DonationActionResponse> = Response.success(
-        DonationActionResponse("Donation created")
-    )
-
-    override suspend fun confirmHandover(id: String): Response<DonationActionResponse> = Response.success(
-        DonationActionResponse("Confirmed")
-    )
-
-    override suspend fun cancelDonation(id: String): Response<DonationActionResponse> = Response.success(
-        DonationActionResponse("Cancelled")
-    )
-}
-
 class DonationFeatureTest {
+    private val api = FakeDonationApiService()
+    private val repository = DefaultDonationRepository(api)
 
-    private lateinit var repository: DefaultDonationRepository
-
-    @Before
-    fun setUp() {
-        repository = DefaultDonationRepository(
-            donationApiService = FakeDonationApiService()
-        )
+    @Test
+    fun nearbyUsesThreeKilometersAndPreservesNumericItemQuantity() = runBlocking {
+        val result = repository.getNearbyDonations(latitude = -7.95, longitude = 112.61).getOrThrow()
+        assertEquals(3, api.radius)
+        assertEquals(-7.95 to 112.61, api.coordinates)
+        assertEquals("500 gram", result.single().items.first().quantity)
+        assertNull(result.single().user.whatsappUrl)
     }
 
     @Test
-    fun testNearbyDonationsFallbackReturnsSeedItems() = runBlocking {
-        val result = repository.getNearbyDonations()
-        assertTrue(result.isSuccess)
-        val donations = result.getOrNull()
-        assertNotNull(donations)
-        assertTrue(donations!!.isNotEmpty())
-        val first = donations.first()
-        assertTrue(first.latitude != 0.0)
-        assertTrue(first.longitude != 0.0)
+    fun nearbyDistinguishesEmptyServerResultsFromErrors() = runBlocking {
+        api.nearby = Response.success(json.decodeFromString<DonationListResponse>("""{"payload":{"donations":[]}}"""))
+        assertTrue(repository.getNearbyDonations().getOrThrow().isEmpty())
+        api.nearby = errorResponse(500)
+        assertTrue(repository.getNearbyDonations().isFailure)
     }
 
     @Test
-    fun testGivenDonationsIncludesInitialSeedAndHandover() = runBlocking {
-        val initialGiven = repository.getGivenDonations().getOrNull()
-        assertNotNull(initialGiven)
-        assertEquals(1, initialGiven!!.size)
-        assertEquals("given_don_1", initialGiven.first().id)
+    fun detailFetchesTheRequesterContactEvenAfterNearbyWasLoaded() = runBlocking {
+        val id = repository.getNearbyDonations().getOrThrow().single().id
+        val detail = repository.getDonationDetail(id).getOrThrow()
 
-        // Confirm handover on don_1 (Wortel & Telur)
-        val handoverResult = repository.confirmHandover("don_1")
-        assertTrue(handoverResult.isSuccess)
-
-        val updatedGiven = repository.getGivenDonations().getOrNull()
-        assertNotNull(updatedGiven)
-        assertEquals(2, updatedGiven!!.size)
-        assertTrue(updatedGiven.any { it.id == "don_1" })
+        assertEquals(id, api.detailId)
+        assertEquals("https://wa.me/6281234567890", detail.user.whatsappUrl)
     }
 
     @Test
-    fun testDonationHubOptionBActivityFilters() {
-        val dummyGiven = Donation(
-            id = "g1",
-            title = "Bayam",
-            category = "Sayur",
-            itemsSummary = "Bayam 1 ikat",
-            items = listOf(DonationItem("Bayam", "1 ikat")),
-            conditionNote = "",
-            storageMethod = "",
-            pickupDeadline = "",
-            areaName = "",
-            meetingPoint = "",
-            latitude = 0.0,
-            longitude = 0.0,
-            distanceDesc = "",
-            whatsappNumber = "",
-            estimatedPrice = 0,
-            estimatedPortions = 1,
-            photoUrl = "",
-            status = "in_progress",
-            step = 2,
-            createdTimeAgo = "",
-            user = DonationUser("u1", "Penerima", "", null, true),
-            donor = DonationUser("my_id", "Affan", "", null, true)
-        )
-
-        val dummyMy = Donation(
-            id = "m1",
-            title = "Telur",
-            category = "Protein",
-            itemsSummary = "Telur 2 butir",
-            items = listOf(DonationItem("Telur", "2 butir")),
-            conditionNote = "",
-            storageMethod = "",
-            pickupDeadline = "",
-            areaName = "",
-            meetingPoint = "",
-            latitude = 0.0,
-            longitude = 0.0,
-            distanceDesc = "",
-            whatsappNumber = "",
-            estimatedPrice = 0,
-            estimatedPortions = 1,
-            photoUrl = "",
-            status = "in_progress",
-            step = 2,
-            createdTimeAgo = "",
-            user = DonationUser("my_id", "Affan", "", null, true),
-            donor = DonationUser("u2", "Donor", "", null, true)
-        )
-
-        val stateAll = DonationHubUiState(
-            selectedActivityFilter = ActivityFilter.ALL,
-            givenDonations = listOf(dummyGiven),
-            myDonations = listOf(dummyMy)
-        )
-        assertEquals(2, stateAll.filteredActivities.size)
-
-        val stateGiving = stateAll.copy(selectedActivityFilter = ActivityFilter.GIVING)
-        assertEquals(1, stateGiving.filteredActivities.size)
-        assertEquals(DonationRole.DONOR, stateGiving.filteredActivities.first().role)
-
-        val stateRequesting = stateAll.copy(selectedActivityFilter = ActivityFilter.REQUESTING)
-        assertEquals(1, stateRequesting.filteredActivities.size)
-        assertEquals(DonationRole.REQUESTER, stateRequesting.filteredActivities.first().role)
-    }
-
-    @Test
-    fun testDonationMapUiStateSelection() {
-        val dummy1 = Donation(
-            id = "d1",
-            title = "Wortel",
-            category = "Sayur",
-            itemsSummary = "Wortel 1kg",
-            items = listOf(DonationItem("Wortel", "1kg")),
-            conditionNote = "",
-            storageMethod = "",
-            pickupDeadline = "",
+    fun createPreservesItemsAndTimeWindowAndSurfacesServerRejection() = runBlocking {
+        val request = DonationRequest(
+            items = listOf(DonationRequestItem("Wortel", 500.0, "gram"), DonationRequestItem("Telur", 4.0, "butir")),
             areaName = "Dinoyo",
             meetingPoint = "Minimarket",
-            latitude = -7.9535,
-            longitude = 112.608,
-            distanceDesc = "800 m",
-            whatsappNumber = "",
-            estimatedPrice = 10000,
-            estimatedPortions = 2,
-            photoUrl = "",
-            status = "active",
-            step = 1,
-            createdTimeAgo = "1 jam lalu",
-            user = DonationUser("u1", "Budi", "", null, true),
-            donor = null
+            latitude = -7.95,
+            longitude = 112.61,
+            receiveStart = "2026-11-25T16:00:00+07:00",
+            receiveEnd = "2026-11-25T19:00:00+07:00"
         )
-
-        val mapState = DonationMapUiState(
-            donations = listOf(dummy1),
-            selectedDonationId = "d1"
-        )
-        assertNotNull(mapState.selectedDonation)
-        assertEquals("d1", mapState.selectedDonation?.id)
+        api.create = errorResponse(400, """{"error_code":"phone_number_required"}""")
+        assertTrue(repository.createDonation(request).exceptionOrNull()?.message.orEmpty().contains("WhatsApp"))
+        assertEquals(listOf("Wortel", "Telur"), api.createdBody?.items?.map { it.name })
+        assertEquals(listOf(500.0, 4.0), api.createdBody?.items?.map { it.quantity })
+        assertEquals(request.receiveStart, api.createdBody?.receiveStart)
+        assertEquals(request.receiveEnd, api.createdBody?.receiveEnd)
     }
 
     @Test
-    fun testDonationMapLocationUpdate() {
-        val initialState = DonationMapUiState()
-        assertEquals(-7.9535, initialState.userLatitude, 0.0001)
-        assertEquals(112.608, initialState.userLongitude, 0.0001)
-        assertEquals("Dinoyo, Malang", initialState.userAddress)
-        assertEquals(false, initialState.isLocationSheetVisible)
-        assertEquals(false, initialState.isGpsLoading)
+    fun fulfillmentAndReceiptUseDistinctActionsAndServerStatuses() = runBlocking {
+        val id = "request-1"
+        val handedOver = repository.fulfillDonation(id, listOf("item-1")).getOrThrow()
+        assertEquals(listOf("item-1"), api.fulfilledItemIds)
+        assertEquals("handed_over", handedOver.status)
+        assertEquals(2, handedOver.step)
+        assertTrue(handedOver.items.single().selected)
 
-        // User changes location to Lowokwaru
-        val updatedState = initialState.copy(
-            userLatitude = -7.9450,
-            userLongitude = 112.6150,
-            userAddress = "Lowokwaru, Malang",
-            isLocationSheetVisible = true
-        )
-        assertEquals(-7.9450, updatedState.userLatitude, 0.0001)
-        assertEquals(112.6150, updatedState.userLongitude, 0.0001)
-        assertEquals("Lowokwaru, Malang", updatedState.userAddress)
-        assertTrue(updatedState.isLocationSheetVisible)
+        val received = repository.confirmReceipt(id).getOrThrow()
+        assertEquals(id, api.confirmedId)
+        assertEquals("received", received.status)
+        assertEquals(3, received.step)
+
+        api.fulfill = errorResponse(409)
+        assertTrue(repository.fulfillDonation(id, listOf("item-1")).isFailure)
+        api.cancellation = errorResponse(403)
+        assertTrue(repository.cancelDonation(id).isFailure)
     }
 
     @Test
-    fun testCreateDonationLocationState() {
-        val defaultState = CreateDonationUiState()
-        assertEquals(-7.9535, defaultState.latitude, 0.0001)
-        assertEquals(112.6080, defaultState.longitude, 0.0001)
-        assertEquals("Dinoyo, Malang", defaultState.areaName)
+    fun activitiesUseServerRolesAndIncludeHistory() = runBlocking {
+        val given = repository.getGivenDonations().getOrThrow()
+        val requested = repository.getMyDonations().getOrThrow()
+        assertEquals(listOf("donor", "requester"), api.roles)
+        assertEquals(listOf("handed_over", "received"), given.map { it.status })
 
-        val updated = defaultState.copy(
-            latitude = -7.9826,
-            longitude = 112.6308,
-            areaName = "Klojen, Kota Malang",
-            meetingPoint = "Alun-Alun Kota Malang"
-        )
-        assertEquals(-7.9826, updated.latitude, 0.0001)
-        assertEquals(112.6308, updated.longitude, 0.0001)
-        assertEquals("Klojen, Kota Malang", updated.areaName)
-        assertEquals("Alun-Alun Kota Malang", updated.meetingPoint)
+        val state = DonationHubUiState(givenDonations = given, myDonations = requested)
+        assertEquals(4, state.filteredActivities.size)
+        assertTrue(state.copy(selectedActivityFilter = ActivityFilter.GIVING)
+            .filteredActivities.all { it.role == DonationRole.DONOR })
+        assertTrue(state.copy(selectedActivityFilter = ActivityFilter.REQUESTING)
+            .filteredActivities.all { it.role == DonationRole.REQUESTER })
     }
+
+    @Test
+    fun requestingOnlyShowsActiveRequestsAndAllKeepsCompletedHistory() = runBlocking {
+        val requested = repository.getMyDonations().getOrThrow()
+        val open = requested.first().copy(id = "open-request", status = "open")
+        val cancelled = requested.first().copy(id = "cancelled-request", status = "cancelled")
+        val state = DonationHubUiState(myDonations = listOf(open, cancelled) + requested)
+
+        assertEquals(2, state.activeRequestCount)
+        assertEquals(0, state.copy(myDonations = listOf(cancelled, requested.last())).activeRequestCount)
+        assertEquals(
+            listOf("open", "cancelled", "handed_over", "received"),
+            state.filteredActivities.map { it.donation.status }
+        )
+        assertEquals(
+            listOf("open", "handed_over"),
+            state.copy(selectedActivityFilter = ActivityFilter.REQUESTING)
+                .filteredActivities.map { it.donation.status }
+        )
+    }
+
+    @Test
+    fun mapSelectionUsesTheRequestedPin() = runBlocking {
+        val donation = repository.getNearbyDonations().getOrThrow().single()
+        val state = DonationMapUiState(donations = listOf(donation), selectedDonationId = donation.id)
+        assertEquals(donation, state.selectedDonation)
+        assertNull(state.copy(donations = emptyList()).selectedDonation)
+    }
+
+    @Test
+    fun newRequestStartsWithoutExampleItemsOrAnInventedLocation() {
+        val state = CreateDonationUiState()
+        assertTrue(state.addedItems.isEmpty())
+        assertFalse(state.hasLocation)
+        assertTrue(state.meetingPoint.isBlank())
+        assertNull(state.receiveStart)
+        assertNull(state.receiveEnd)
+    }
+}
+
+private val json = Json { ignoreUnknownKeys = true }
+
+private class FakeDonationApiService : DonationApiService {
+    var radius: Int? = null
+    var coordinates: Pair<Double?, Double?>? = null
+    var detailId: String? = null
+    var createdBody: CreateDonationRequest? = null
+    var fulfilledItemIds: List<String>? = null
+    var confirmedId: String? = null
+    val roles = mutableListOf<String>()
+    var nearby = Response.success(
+        json.decodeFromString<DonationListResponse>(
+            """{"payload":{"donations":[${donation(status = "open", contact = false)}]}}"""
+        )
+    )
+    var create = donationResponse("open")
+    var fulfill = donationResponse("handed_over")
+    var cancellation = Response.success<Unit>(null)
+
+    override suspend fun getNearbyDonations(
+        latitude: Double?, longitude: Double?, radius: Int, search: String?
+    ): Response<DonationListResponse> {
+        this.radius = radius
+        coordinates = latitude to longitude
+        return nearby
+    }
+
+    override suspend fun getMyDonations(role: String): Response<DonationActivityResponse> {
+        roles.add(role)
+        return Response.success(
+            json.decodeFromString<DonationActivityResponse>(
+                """{"payload":{"active":[${donation("handed_over")}],"history":[${donation("received")}]}}"""
+            )
+        )
+    }
+
+    override suspend fun getDonationDetail(
+        id: String, latitude: Double?, longitude: Double?
+    ): Response<DonationDetailResponse> {
+        detailId = id
+        return donationResponse("open")
+    }
+
+    override suspend fun createDonation(request: CreateDonationRequest): Response<DonationDetailResponse> {
+        createdBody = request
+        return create
+    }
+
+    override suspend fun fulfillDonation(id: String, request: FulfillDonationRequest): Response<DonationDetailResponse> {
+        fulfilledItemIds = request.itemIds
+        return fulfill
+    }
+
+    override suspend fun confirmReceipt(id: String): Response<DonationDetailResponse> {
+        confirmedId = id
+        return donationResponse("received")
+    }
+
+    override suspend fun cancelDonation(id: String): Response<Unit> = cancellation
+}
+
+private fun <T> errorResponse(code: Int, body: String = """{"message":"Server error"}"""): Response<T> =
+    Response.error(code, body.toResponseBody())
+
+private fun donationResponse(status: String): Response<DonationDetailResponse> =
+    Response.success(json.decodeFromString("""{"payload":{"donation":${donation(status)}}}"""))
+
+private fun donation(status: String, contact: Boolean = true): String {
+    val requester = if (contact) {
+        """{"id":"user-1","name":"Peminta","whatsapp_url":"https://wa.me/6281234567890"}"""
+    } else {
+        """{"id":"user-1","name":"Peminta"}"""
+    }
+    return """
+        {
+          "id":"request-1",
+          "title":"Wortel",
+          "meeting_point":"Minimarket",
+          "latitude":-7.95,
+          "longitude":112.61,
+          "receive_start":"2026-11-25T16:00:00+07:00",
+          "receive_end":"2026-11-25T19:00:00+07:00",
+          "status":"$status",
+          "items":[{"id":"item-1","name":"Wortel","quantity":500,"unit":"gram","selected":${status != "open"}}],
+          "requester":$requester
+        }
+    """.trimIndent()
 }

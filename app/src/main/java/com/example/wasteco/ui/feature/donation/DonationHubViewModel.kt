@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.wasteco.WasteCoApplication
 import com.example.wasteco.data.repository.DonationRepository
+import com.example.wasteco.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,19 +16,18 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class DonationHubViewModel(
-    private val donationRepository: DonationRepository
+    private val donationRepository: DonationRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DonationHubUiState())
     val uiState: StateFlow<DonationHubUiState> = _uiState.asStateFlow()
 
-    init {
-        loadData()
-    }
-
     fun loadData() {
+        if (_uiState.value.isLoading || _uiState.value.isUpdating) return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            val user = authRepository.getMe().getOrNull()
             val nearbyRes = donationRepository.getNearbyDonations()
             val myRes = donationRepository.getMyDonations()
             val givenRes = donationRepository.getGivenDonations()
@@ -37,6 +37,8 @@ class DonationHubViewModel(
                     nearbyDonations = nearbyRes.getOrDefault(emptyList()),
                     myDonations = myRes.getOrDefault(emptyList()),
                     givenDonations = givenRes.getOrDefault(emptyList()),
+                    currentLocation = user?.areaName.orEmpty(),
+                    errorMessage = (nearbyRes.exceptionOrNull() ?: myRes.exceptionOrNull() ?: givenRes.exceptionOrNull())?.message,
                     isLoading = false
                 )
             }
@@ -55,17 +57,13 @@ class DonationHubViewModel(
         _uiState.update { it.copy(searchQuery = query) }
     }
 
-    fun confirmHandoverAsDonor(id: String) {
-        viewModelScope.launch {
-            donationRepository.confirmHandover(id)
-            loadData()
-        }
-    }
-
     fun cancelMyDonation(id: String) {
+        if (_uiState.value.isUpdating) return
         viewModelScope.launch {
-            donationRepository.cancelDonation(id)
-            loadData()
+            _uiState.update { it.copy(isUpdating = true, errorMessage = null) }
+            val result = donationRepository.cancelDonation(id)
+            _uiState.update { it.copy(isUpdating = false, errorMessage = result.exceptionOrNull()?.message) }
+            if (result.isSuccess) loadData()
         }
     }
 
@@ -74,7 +72,8 @@ class DonationHubViewModel(
             initializer {
                 val app = (this[APPLICATION_KEY] as WasteCoApplication)
                 DonationHubViewModel(
-                    donationRepository = app.container.donationRepository
+                    donationRepository = app.container.donationRepository,
+                    authRepository = app.container.authRepository
                 )
             }
         }

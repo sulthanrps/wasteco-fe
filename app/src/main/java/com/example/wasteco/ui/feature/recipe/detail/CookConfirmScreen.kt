@@ -48,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.wasteco.domain.model.Recipe
+import com.example.wasteco.R
 import com.example.wasteco.domain.model.UsedIngredient
 import com.example.wasteco.ui.components.WasteCoLogoBadge
 import com.example.wasteco.ui.components.WasteCoPrimaryButton
@@ -116,11 +118,19 @@ fun CookConfirmScreen(
                     tonalElevation = Elevation.small,
                     shadowElevation = Elevation.small
                 ) {
-                    Box(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = Spacing.large, vertical = Spacing.medium)
+                            .padding(horizontal = Spacing.large, vertical = Spacing.medium),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.small)
                     ) {
+                        uiState.errorMessage?.let { message ->
+                            Text(
+                                text = message,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
                         WasteCoPrimaryButton(
                             text = if (uiState.isConfirming) "Menyimpan..." else "Konfirmasi Selesai Memasak",
                             onClick = onConfirmCooking,
@@ -170,7 +180,7 @@ fun CookConfirmScreen(
                 Spacer(modifier = Modifier.height(Spacing.small))
 
                 Text(
-                    text = "Hebat! Kamu berhasil menghemat Rp ${uiState.totalEstimatedSavings} dan mencegah sisa makanan terbuang ke TPA.",
+                    text = stringResource(R.string.cook_recorded_message),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -463,16 +473,6 @@ fun CookConfirmScreen(
                             onPlus = { onPortionDelta(1) }
                         )
                     }
-                }
-
-                if (uiState.errorMessage != null) {
-                    Spacer(modifier = Modifier.height(Spacing.medium))
-                    Text(
-                        text = uiState.errorMessage,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center
-                    )
                 }
 
                 Spacer(modifier = Modifier.height(Spacing.xlarge))

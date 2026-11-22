@@ -17,8 +17,8 @@ fun RecipeListRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(ingredientIds) {
-        viewModel.generateRecipes(ingredientIds)
+    LaunchedEffect(viewModel, ingredientIds) {
+        viewModel.loadRecipes(ingredientIds)
     }
 
     RecipeListScreen(

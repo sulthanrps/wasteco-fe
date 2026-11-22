@@ -1,23 +1,23 @@
 package com.example.wasteco.ui.feature.donation.create
 
-import com.example.wasteco.domain.model.DonationItem
+import com.example.wasteco.domain.model.DonationRequestItem
+import java.time.LocalDateTime
 
 data class CreateDonationUiState(
     val inputIngredientName: String = "",
-    val inputQuantity: String = "2",
+    val inputQuantity: String = "",
     val inputUnit: String = "porsi",
-    val addedItems: List<DonationItem> = listOf(
-        DonationItem("Wortel", "500 gram"),
-        DonationItem("Telur Ayam", "4 butir"),
-        DonationItem("Nasi Putih", "2 porsi")
-    ),
-    val areaName: String = "Dinoyo, Malang",
-    val meetingPoint: String = "Depan Minimarket Dinoyo",
-    val latitude: Double = -7.9535,
-    val longitude: Double = 112.6080,
-    val pickupTime: String = "Hari ini, 16.00 – 19.00",
+    val addedItems: List<DonationRequestItem> = emptyList(),
+    val areaName: String = "",
+    val meetingPoint: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val hasLocation: Boolean = false,
+    val receiveStart: LocalDateTime? = null,
+    val receiveEnd: LocalDateTime? = null,
     val isSubmitting: Boolean = false,
     val isSuccess: Boolean = false,
     val isGpsLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val errorResource: Int? = null
 )
