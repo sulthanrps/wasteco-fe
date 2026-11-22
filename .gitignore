@@ -1,0 +1,24 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.idea/
+.kotlin/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Environment variables
+.env
+.env.local
+
+/screenshots
+
+
+.agents
+
+AGENTS.md
+
