@@ -47,6 +47,63 @@ Di Windows, gunakan `gradlew.bat`. APK debug berada di `app/build/outputs/apk/de
 
 Untuk memastikan integrasi berjalan di perangkat, coba simpan hasil deteksi foto dan buat rekomendasi dari pantry. Uji juga satu permintaan donasi menggunakan dua akun untuk memeriksa alur dari pembuatan permintaan sampai konfirmasi penerimaan.
 
+## CI/CD dan rilis APK
+
+Dua workflow GitHub Actions ada di `.github/workflows/`:
+
+| Workflow | Pemicu | Yang dilakukan |
+| --- | --- | --- |
+| [CI](.github/workflows/ci.yml) | Push ke `main` dan setiap pull request | Kompilasi, tes unit, build APK debug, lalu unggah APK sebagai artifact selama 14 hari. |
+| [Release APK](.github/workflows/release.yml) | Push tag `vMAJOR.MINOR.PATCH`, atau dijalankan manual dengan tag yang sudah ada | Build APK rilis bertanda tangan, verifikasi tanda tangan, lalu terbitkan GitHub Release berisi `wasteco.apk` dan `wasteco.apk.sha256`. |
+
+Nama aset selalu `wasteco.apk`, sehingga tautan berikut selalu mengarah ke versi terbaru dan dipakai oleh landing page:
+
+```text
+https://github.com/sulthanrps/wasteco-fe/releases/latest/download/wasteco.apk
+```
+
+### Menyiapkan secret (sekali saja)
+
+1. Buat keystore rilis. Simpan file dan password-nya di tempat aman. Jika keystore hilang, pengguna harus uninstall aplikasi sebelum bisa memasang versi berikutnya.
+
+   ```bash
+   keytool -genkeypair -v -keystore wasteco-release.jks -alias wasteco \
+     -keyalg RSA -keysize 4096 -validity 10000
+   base64 -w0 wasteco-release.jks > wasteco-release.jks.b64
+   ```
+
+2. Di **Settings › Secrets and variables › Actions**, tambahkan secret berikut:
+
+   | Secret | Isi |
+   | --- | --- |
+   | `WASTECO_API_KEY` | API key backend WasteCo |
+   | `WASTECO_KEYSTORE_BASE64` | Isi `wasteco-release.jks.b64` |
+   | `WASTECO_KEYSTORE_PASSWORD` | Password keystore |
+   | `WASTECO_KEY_ALIAS` | Alias key, mis. `wasteco` |
+   | `WASTECO_KEY_PASSWORD` | Password key |
+
+3. Opsional: agar landing page langsung build ulang setelah rilis, isi variable `LANDING_REPO` (mis. `sulthanrps/wasteco-landing`) dan secret `LANDING_DISPATCH_TOKEN` berisi fine-grained token dengan izin **Contents: Read and write** di repo landing page.
+
+### Membuat rilis
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+`versionName` diambil dari tag (`1.0.0`) dan `versionCode` dihitung sebagai `major × 10000 + minor × 100 + patch` (`10000`). Minor dan patch harus di bawah 100. Catatan rilis dibuat otomatis dari commit dan pull request sejak tag sebelumnya.
+
+Untuk build rilis bertanda tangan di komputer sendiri, isi properti berikut di `local.properties` (path relatif terhadap root repo):
+
+```properties
+wasteco.signing.storeFile=wasteco-release.jks
+wasteco.signing.storePassword=...
+wasteco.signing.keyAlias=wasteco
+wasteco.signing.keyPassword=...
+```
+
+Tanpa properti tersebut, `assembleRelease` tetap berjalan tetapi menghasilkan APK yang belum ditandatangani.
+
 ## Integrasi backend
 
 Base URL WasteCo adalah `https://wastecobe.mhqif.my.id/`. Aplikasi mengirim `x-api-key` dari konfigurasi lokal dan token `Authorization: Bearer …` untuk request yang memerlukan sesi. [Konfigurasi modul Android](app/build.gradle.kts) · [Dokumentasi API WasteCo di Apidog](https://udbgxui5c2.apidog.io/)
