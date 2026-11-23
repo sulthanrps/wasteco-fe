@@ -11,7 +11,12 @@ val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
-val wastecoApiKey: String = localProperties.getProperty("wasteco.apiKey") ?: ""
+// CI passes values through environment variables; local builds read local.properties.
+fun configValue(property: String, env: String): String? =
+    System.getenv(env)?.takeIf { it.isNotBlank() } ?: localProperties.getProperty(property)
+
+val wastecoApiKey: String = configValue("wasteco.apiKey", "WASTECO_API_KEY") ?: ""
+val releaseStoreFile: String? = configValue("wasteco.signing.storeFile", "WASTECO_KEYSTORE_PATH")
 
 android {
     namespace = "com.example.wasteco"
@@ -23,8 +28,9 @@ android {
         applicationId = "com.example.wasteco"
         minSdk = 33
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        // The release workflow derives both from the git tag (v1.2.3 -> 1.2.3 / 10203).
+        versionCode = providers.gradleProperty("wasteco.versionCode").orNull?.toInt() ?: 1
+        versionName = providers.gradleProperty("wasteco.versionName").orNull ?: "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -32,8 +38,20 @@ android {
         buildConfigField("String", "BASE_URL", "\"https://wastecobe.mhqif.my.id/\"")
     }
 
+    signingConfigs {
+        if (releaseStoreFile != null) {
+            create("release") {
+                storeFile = rootProject.file(releaseStoreFile)
+                storePassword = configValue("wasteco.signing.storePassword", "WASTECO_KEYSTORE_PASSWORD")
+                keyAlias = configValue("wasteco.signing.keyAlias", "WASTECO_KEY_ALIAS")
+                keyPassword = configValue("wasteco.signing.keyPassword", "WASTECO_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.findByName("release")
             optimization {
                 enable = false
             }
