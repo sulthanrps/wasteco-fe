@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.example.wasteco.R
 import com.example.wasteco.ui.theme.EntryColors
 import com.example.wasteco.ui.theme.EntryDimens
+import com.example.wasteco.ui.theme.LogoBackdrop
 import com.example.wasteco.ui.theme.Radius
 import com.example.wasteco.ui.theme.Spacing
 
@@ -54,10 +56,16 @@ fun WasteCoLogoBadge(
 @Composable
 fun WasteCoLogo(modifier: Modifier = Modifier, withTagline: Boolean = false) {
     if (withTagline) {
+        val backdrop = LogoBackdrop
+        val hasBackdrop = backdrop.alpha > 0f
         Image(
             painter = painterResource(R.drawable.wasteco_logo_tagline),
             contentDescription = stringResource(R.string.brand_with_tagline),
-            modifier = modifier.width(EntryDimens.onboardingLogoWidth)
+            modifier = modifier
+                .clip(RoundedCornerShape(Radius.medium))
+                .background(backdrop)
+                .then(if (hasBackdrop) Modifier.padding(horizontal = Spacing.medium, vertical = Spacing.small) else Modifier)
+                .width(EntryDimens.onboardingLogoWidth)
         )
     } else {
         Row(

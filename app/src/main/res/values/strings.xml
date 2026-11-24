@@ -76,13 +76,10 @@
     <string name="donation_picker_cancel">Batal</string>
     <string name="donation_picker_confirm">Terapkan</string>
     <string name="brand_with_tagline">WasteCo. Kelola Pangan, Kurangi Sisa, Lebih Bermakna.</string>
-    <string name="onboarding_hero_caption">Gerakan Dapur Berkelanjutan</string>
     <string name="onboarding_recipes">Zero-Waste Recipe</string>
     <string name="onboarding_recipes_description">Resep Gemini AI dari bahan sisa</string>
     <string name="onboarding_donations">Food Donation Hub</string>
     <string name="onboarding_donations_description">Peta donasi makanan di sekitarmu</string>
-    <string name="onboarding_stats">Statistik Penghematan</string>
-    <string name="onboarding_stats_description">Lihat total porsi pangan terselamatkan</string>
     <string name="onboarding_get_started">Mulai Sekarang</string>
     <string name="auth_existing_account">Sudah punya akun?</string>
     <string name="auth_new_account">Belum punya akun?</string>

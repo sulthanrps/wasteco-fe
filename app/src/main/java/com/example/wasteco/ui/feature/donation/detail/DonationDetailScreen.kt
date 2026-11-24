@@ -70,6 +70,10 @@ import com.example.wasteco.ui.theme.PrimaryDarker
 import com.example.wasteco.ui.theme.PrimaryMain
 import com.example.wasteco.ui.theme.Radius
 import com.example.wasteco.ui.theme.Spacing
+import com.example.wasteco.ui.theme.BorderSubtle
+import com.example.wasteco.ui.theme.BrandSolid
+import com.example.wasteco.ui.theme.SuccessTint
+import com.example.wasteco.ui.theme.SurfaceSubtle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,7 +109,7 @@ fun DonationDetailScreen(
                     modifier = Modifier
                         .size(64.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFE8F5E9)),
+                        .background(SuccessTint),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -153,7 +157,7 @@ fun DonationDetailScreen(
                     onClick = onReturnToDonationHub,
                     shape = RoundedCornerShape(Radius.medium),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = PrimaryDarker,
+                        containerColor = BrandSolid,
                         contentColor = Color.White
                     ),
                     modifier = Modifier
@@ -280,7 +284,7 @@ fun DonationDetailScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium)),
+                        .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium)),
                     shape = RoundedCornerShape(Radius.medium),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = Elevation.none)
@@ -331,7 +335,7 @@ fun DonationDetailScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium)),
+                        .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium)),
                     shape = RoundedCornerShape(Radius.medium),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = Elevation.none)
@@ -387,7 +391,7 @@ fun DonationDetailScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(Radius.small))
-                                .background(Color(0xFFF3F7F2))
+                                .background(SurfaceSubtle)
                                 .padding(Spacing.medium),
                             verticalArrangement = Arrangement.spacedBy(Spacing.compact)
                         ) {
@@ -461,7 +465,7 @@ fun DonationDetailScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium)),
+                        .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium)),
                     shape = RoundedCornerShape(Radius.medium),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = Elevation.none)
@@ -500,7 +504,7 @@ fun DonationDetailScreen(
                                     onCheckedChange = { onToggleItem(item.id) },
                                     enabled = donation.status == "open" && !uiState.isSubmitting,
                                     colors = CheckboxDefaults.colors(
-                                        checkedColor = PrimaryDarker,
+                                        checkedColor = BrandSolid,
                                         checkmarkColor = Color.White
                                     )
                                 )

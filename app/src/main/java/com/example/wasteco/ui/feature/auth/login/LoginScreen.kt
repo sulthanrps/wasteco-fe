@@ -133,7 +133,7 @@ fun LoginScreen(
                 onClick = onLoginClick,
                 isLoading = uiState.isLoading,
                 trailingIcon = Icons.AutoMirrored.Filled.ArrowForward,
-                containerColor = EntryColors.action,
+                containerColor = EntryColors.actionSolid,
                 cornerRadius = Radius.medium,
                 iconSize = EntryDimens.buttonIcon
             )

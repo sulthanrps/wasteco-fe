@@ -57,6 +57,8 @@ import com.example.wasteco.ui.theme.Radius
 import com.example.wasteco.ui.theme.SecondaryDark
 import com.example.wasteco.ui.theme.Spacing
 import com.example.wasteco.ui.theme.WasteCoTheme
+import com.example.wasteco.ui.theme.BrandSolid
+import com.example.wasteco.ui.theme.Surface
 
 data class NearbyRequestItem(
     val id: String,
@@ -132,7 +134,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(PrimaryDarker)
+                        .background(BrandSolid)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Person,
@@ -219,7 +221,7 @@ fun HomeScreen(
                             onClick = onPantryClick,
                             shape = RoundedCornerShape(Radius.medium),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = PrimaryDarker,
+                                containerColor = BrandSolid,
                                 contentColor = Color.White
                             ),
                             contentPadding = PaddingValues(horizontal = Spacing.compact, vertical = Spacing.compact),
@@ -244,7 +246,7 @@ fun HomeScreen(
                             onClick = onDonationsClick,
                             shape = RoundedCornerShape(Radius.medium),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = Color.White,
+                                containerColor = Surface,
                                 contentColor = PrimaryDarker
                             ),
                             border = ButtonDefaults.outlinedButtonBorder.copy(
@@ -356,7 +358,7 @@ fun NearbyRequestCard(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .clip(RoundedCornerShape(bottomEnd = Radius.small))
-                        .background(PrimaryDarker)
+                        .background(BrandSolid)
                         .padding(horizontal = Spacing.small, vertical = Spacing.xxs)
                 ) {
                     Text(

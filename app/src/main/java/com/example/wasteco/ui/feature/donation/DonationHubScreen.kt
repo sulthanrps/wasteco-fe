@@ -82,6 +82,18 @@ import com.example.wasteco.ui.theme.PrimaryMain
 import com.example.wasteco.ui.theme.Radius
 import com.example.wasteco.ui.theme.SecondaryMain
 import com.example.wasteco.ui.theme.Spacing
+import com.example.wasteco.ui.theme.BorderSubtle
+import com.example.wasteco.ui.theme.BrandSolid
+import com.example.wasteco.ui.theme.ErrorContainer
+import com.example.wasteco.ui.theme.ErrorRed
+import com.example.wasteco.ui.theme.ImageScrim
+import com.example.wasteco.ui.theme.SecondarySolid
+import com.example.wasteco.ui.theme.SuccessTint
+import com.example.wasteco.ui.theme.SurfaceMuted
+import com.example.wasteco.ui.theme.SurfaceSubtle
+import com.example.wasteco.ui.theme.WarningInk
+import com.example.wasteco.ui.theme.WarningTint
+import com.example.wasteco.ui.theme.Surface
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -132,7 +144,7 @@ fun DonationHubScreen(
                             .padding(end = Spacing.medium)
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(PrimaryDarker)
+                            .background(BrandSolid)
                             .clickable { onProfileClick() },
                         contentAlignment = Alignment.Center
                     ) {
@@ -204,7 +216,7 @@ fun DonationHubScreen(
                     onClick = onCreateRequestClick,
                     shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = PrimaryDarker,
+                        containerColor = BrandSolid,
                         contentColor = Color.White
                     ),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 6.dp),
@@ -231,7 +243,7 @@ fun DonationHubScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(24.dp))
-                    .background(Color(0xFFEFF3EE))
+                    .background(SurfaceSubtle)
                     .padding(4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -242,7 +254,7 @@ fun DonationHubScreen(
                         .weight(1f)
                         .clip(RoundedCornerShape(20.dp))
                         .clickable { onTabSelected(DonationTab.NEARBY) },
-                    color = if (isNearby) Color.White else Color.Transparent,
+                    color = if (isNearby) Surface else Color.Transparent,
                     shape = RoundedCornerShape(20.dp),
                     shadowElevation = if (isNearby) Elevation.small else Elevation.none
                 ) {
@@ -275,7 +287,7 @@ fun DonationHubScreen(
                         .weight(1f)
                         .clip(RoundedCornerShape(20.dp))
                         .clickable { onTabSelected(DonationTab.MY_ACTIVITIES) },
-                    color = if (isActivity) Color.White else Color.Transparent,
+                    color = if (isActivity) Surface else Color.Transparent,
                     shape = RoundedCornerShape(20.dp),
                     shadowElevation = if (isActivity) Elevation.small else Elevation.none
                 ) {
@@ -354,7 +366,7 @@ fun DonationHubScreen(
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                             focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedBorderColor = Color(0xFFE5E7EB),
+                            unfocusedBorderColor = BorderSubtle,
                             focusedBorderColor = PrimaryMain
                         )
                     )
@@ -363,7 +375,7 @@ fun DonationHubScreen(
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(Radius.medium))
-                            .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium))
+                            .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium))
                             .background(MaterialTheme.colorScheme.surface)
                             .padding(2.dp)
                     ) {
@@ -439,7 +451,7 @@ fun DonationHubScreen(
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = PrimaryDarker,
+                            selectedContainerColor = BrandSolid,
                             selectedLabelColor = Color.White,
                             containerColor = MaterialTheme.colorScheme.surface,
                             labelColor = MaterialTheme.colorScheme.onSurface
@@ -447,8 +459,8 @@ fun DonationHubScreen(
                         border = FilterChipDefaults.filterChipBorder(
                             enabled = true,
                             selected = uiState.selectedActivityFilter == ActivityFilter.ALL,
-                            borderColor = Color(0xFFE5E7EB),
-                            selectedBorderColor = PrimaryDarker
+                            borderColor = BorderSubtle,
+                            selectedBorderColor = BrandSolid
                         ),
                         shape = RoundedCornerShape(20.dp)
                     )
@@ -464,7 +476,7 @@ fun DonationHubScreen(
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = PrimaryDarker,
+                            selectedContainerColor = BrandSolid,
                             selectedLabelColor = Color.White,
                             containerColor = MaterialTheme.colorScheme.surface,
                             labelColor = MaterialTheme.colorScheme.onSurface
@@ -472,8 +484,8 @@ fun DonationHubScreen(
                         border = FilterChipDefaults.filterChipBorder(
                             enabled = true,
                             selected = uiState.selectedActivityFilter == ActivityFilter.GIVING,
-                            borderColor = Color(0xFFE5E7EB),
-                            selectedBorderColor = PrimaryDarker
+                            borderColor = BorderSubtle,
+                            selectedBorderColor = BrandSolid
                         ),
                         shape = RoundedCornerShape(20.dp)
                     )
@@ -489,7 +501,7 @@ fun DonationHubScreen(
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = PrimaryDarker,
+                            selectedContainerColor = BrandSolid,
                             selectedLabelColor = Color.White,
                             containerColor = MaterialTheme.colorScheme.surface,
                             labelColor = MaterialTheme.colorScheme.onSurface
@@ -497,8 +509,8 @@ fun DonationHubScreen(
                         border = FilterChipDefaults.filterChipBorder(
                             enabled = true,
                             selected = uiState.selectedActivityFilter == ActivityFilter.REQUESTING,
-                            borderColor = Color(0xFFE5E7EB),
-                            selectedBorderColor = PrimaryDarker
+                            borderColor = BorderSubtle,
+                            selectedBorderColor = BrandSolid
                         ),
                         shape = RoundedCornerShape(20.dp)
                     )
@@ -568,7 +580,7 @@ private fun NearbyDonationCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(Radius.medium))
-            .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium))
+            .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium))
             .clickable { onClick() },
         shape = RoundedCornerShape(Radius.medium),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -598,7 +610,7 @@ private fun NearbyDonationCard(
                     modifier = Modifier
                         .padding(Spacing.xs)
                         .clip(RoundedCornerShape(6.dp))
-                        .background(PrimaryDarker)
+                        .background(BrandSolid)
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
                     Text(
@@ -668,7 +680,7 @@ private fun NearbyDonationCard(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFFFF3E0))
+                        .background(WarningTint)
                         .padding(horizontal = 8.dp, vertical = 3.dp)
                 ) {
                     Row(
@@ -678,14 +690,14 @@ private fun NearbyDonationCard(
                         Icon(
                             imageVector = Icons.Default.Schedule,
                             contentDescription = null,
-                            tint = Color(0xFFE87A24),
+                            tint = SecondaryMain,
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
                             text = donation.createdTimeAgo,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFFE87A24)
+                            color = SecondaryMain
                         )
                     }
                 }
@@ -702,7 +714,7 @@ private fun GivingDonationCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium)),
+            .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium)),
         shape = RoundedCornerShape(Radius.medium),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = Elevation.none)
@@ -733,7 +745,7 @@ private fun GivingDonationCard(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .background(PrimaryDarker)
+                            .background(BrandSolid)
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -757,12 +769,12 @@ private fun GivingDonationCard(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (donation.step >= 3) Color(0xFFE8F5E9) else Color(0xFFFFF3E0))
+                            .background(if (donation.step >= 3) SuccessTint else WarningTint)
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
                             text = stringResource(donationStatusLabel(donation.status)),
-                            color = if (donation.step >= 3) PrimaryDarker else Color(0xFFE87A24),
+                            color = if (donation.step >= 3) PrimaryDarker else SecondaryMain,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -774,7 +786,7 @@ private fun GivingDonationCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.BottomStart)
-                        .background(Color(0x99000000))
+                        .background(ImageScrim)
                         .padding(horizontal = Spacing.medium, vertical = Spacing.small)
                 ) {
                     Column {
@@ -804,7 +816,7 @@ private fun GivingDonationCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(Radius.small))
-                        .background(Color(0xFFE8F5E9))
+                        .background(SuccessTint)
                         .padding(Spacing.medium),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -852,7 +864,7 @@ private fun GivingDonationCard(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(Radius.small),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF7FAF7))
+                    colors = CardDefaults.cardColors(containerColor = SurfaceMuted)
                 ) {
                     Column(modifier = Modifier.padding(Spacing.medium)) {
                         Row(
@@ -882,7 +894,7 @@ private fun GivingDonationCard(
                                 .height(6.dp)
                                 .clip(RoundedCornerShape(3.dp)),
                             color = PrimaryMain,
-                            trackColor = Color(0xFFE5E7EB)
+                            trackColor = BorderSubtle
                         )
 
                         Spacer(modifier = Modifier.height(Spacing.compact))
@@ -935,7 +947,7 @@ private fun MyDonationCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium)),
+            .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium)),
         shape = RoundedCornerShape(Radius.medium),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = Elevation.none)
@@ -966,7 +978,7 @@ private fun MyDonationCard(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF2E7D32))
+                            .background(BrandSolid)
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -990,7 +1002,7 @@ private fun MyDonationCard(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color.White)
+                            .background(Surface)
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1016,7 +1028,7 @@ private fun MyDonationCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.BottomStart)
-                        .background(Color(0x99000000))
+                        .background(ImageScrim)
                         .padding(horizontal = Spacing.medium, vertical = Spacing.small)
                 ) {
                     Column {
@@ -1050,7 +1062,7 @@ private fun MyDonationCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(Radius.small))
-                            .background(Color(0xFFE8F5E9))
+                            .background(SuccessTint)
                             .padding(Spacing.medium),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1058,7 +1070,7 @@ private fun MyDonationCard(
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFF2E7D32)),
+                                .background(BrandSolid),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -1076,7 +1088,7 @@ private fun MyDonationCard(
                                 text = "Permintaan Selesai",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1B5E20)
+                                color = PrimaryDarker
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
@@ -1092,7 +1104,7 @@ private fun MyDonationCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(Radius.small))
-                            .background(Color(0xFFE8F5E9))
+                            .background(SuccessTint)
                             .padding(Spacing.medium),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1134,7 +1146,7 @@ private fun MyDonationCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(Radius.small))
-                            .background(Color(0xFFFFF8E1))
+                            .background(WarningTint)
                             .padding(Spacing.medium),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1142,7 +1154,7 @@ private fun MyDonationCard(
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFFF57F17)),
+                                .background(SecondarySolid),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -1160,7 +1172,7 @@ private fun MyDonationCard(
                                 text = "Menunggu Donatur Sekitar",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFE65100)
+                                color = WarningInk
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
@@ -1178,7 +1190,7 @@ private fun MyDonationCard(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(Radius.small),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF7FAF7))
+                    colors = CardDefaults.cardColors(containerColor = SurfaceMuted)
                 ) {
                     Column(modifier = Modifier.padding(Spacing.medium)) {
                         Row(
@@ -1209,7 +1221,7 @@ private fun MyDonationCard(
                                 .height(6.dp)
                                 .clip(RoundedCornerShape(3.dp)),
                             color = PrimaryMain,
-                            trackColor = Color(0xFFE5E7EB)
+                            trackColor = BorderSubtle
                         )
 
                         Spacer(modifier = Modifier.height(Spacing.compact))
@@ -1266,8 +1278,8 @@ private fun MyDonationCard(
                             .height(48.dp),
                         shape = RoundedCornerShape(Radius.medium),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFFFEBEE),
-                            contentColor = Color(0xFFC62828)
+                            containerColor = ErrorContainer,
+                            contentColor = ErrorRed
                         )
                     ) {
                         Icon(

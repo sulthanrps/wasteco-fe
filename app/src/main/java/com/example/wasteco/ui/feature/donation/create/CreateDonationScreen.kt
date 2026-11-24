@@ -112,6 +112,10 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import com.example.wasteco.ui.theme.BorderSubtle
+import com.example.wasteco.ui.theme.SuccessTint
+import com.example.wasteco.ui.theme.SurfaceMuted
+import com.example.wasteco.ui.theme.Surface
 
 private const val LEAFLET_PICKER_HTML = """
 <!DOCTYPE html>
@@ -344,7 +348,7 @@ fun CreateDonationScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium)),
+                    .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium)),
                 shape = RoundedCornerShape(Radius.medium),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = Elevation.none)
@@ -367,9 +371,9 @@ fun CreateDonationScreen(
                         singleLine = true,
                         shape = RoundedCornerShape(Radius.small),
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = Color(0xFFF7FAF7),
-                            focusedContainerColor = Color(0xFFF7FAF7),
-                            unfocusedBorderColor = Color(0xFFE5E7EB),
+                            unfocusedContainerColor = SurfaceMuted,
+                            focusedContainerColor = SurfaceMuted,
+                            unfocusedBorderColor = BorderSubtle,
                             focusedBorderColor = PrimaryMain
                         )
                     )
@@ -396,9 +400,9 @@ fun CreateDonationScreen(
                                 singleLine = true,
                                 shape = RoundedCornerShape(Radius.small),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    unfocusedContainerColor = Color(0xFFF7FAF7),
-                                    focusedContainerColor = Color(0xFFF7FAF7),
-                                    unfocusedBorderColor = Color(0xFFE5E7EB),
+                                    unfocusedContainerColor = SurfaceMuted,
+                                    focusedContainerColor = SurfaceMuted,
+                                    unfocusedBorderColor = BorderSubtle,
                                     focusedBorderColor = PrimaryMain
                                 )
                             )
@@ -429,9 +433,9 @@ fun CreateDonationScreen(
                                     },
                                     shape = RoundedCornerShape(Radius.small),
                                     colors = OutlinedTextFieldDefaults.colors(
-                                        unfocusedContainerColor = Color(0xFFF7FAF7),
-                                        focusedContainerColor = Color(0xFFF7FAF7),
-                                        unfocusedBorderColor = Color(0xFFE5E7EB),
+                                        unfocusedContainerColor = SurfaceMuted,
+                                        focusedContainerColor = SurfaceMuted,
+                                        unfocusedBorderColor = BorderSubtle,
                                         focusedBorderColor = PrimaryMain
                                     )
                                 )
@@ -461,7 +465,7 @@ fun CreateDonationScreen(
                         onClick = onAddIngredient,
                         shape = RoundedCornerShape(Radius.medium),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFE8F5E9),
+                            containerColor = SuccessTint,
                             contentColor = PrimaryDarker
                         ),
                         modifier = Modifier
@@ -494,7 +498,7 @@ fun CreateDonationScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(Radius.small))
-                                    .background(Color(0xFFEBF4EB))
+                                    .background(SuccessTint)
                                     .padding(horizontal = Spacing.compact, vertical = 6.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
@@ -546,7 +550,7 @@ fun CreateDonationScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium)),
+                    .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium)),
                 shape = RoundedCornerShape(Radius.medium),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = Elevation.none)
@@ -588,7 +592,7 @@ fun CreateDonationScreen(
                             .fillMaxWidth()
                             .height(160.dp)
                             .clip(RoundedCornerShape(Radius.medium))
-                            .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium))
+                            .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium))
                     ) {
                         AndroidView(
                             modifier = Modifier.fillMaxSize(),
@@ -640,7 +644,7 @@ fun CreateDonationScreen(
                         // Floating Badge: "Ketuk peta untuk memindahkan pin"
                         Surface(
                             shape = RoundedCornerShape(16.dp),
-                            color = Color.White.copy(alpha = 0.95f),
+                            color = Surface.copy(alpha = 0.95f),
                             shadowElevation = Elevation.small,
                             modifier = Modifier
                                 .align(Alignment.TopStart)
@@ -669,7 +673,7 @@ fun CreateDonationScreen(
                         // Floating GPS Button
                         Surface(
                             shape = RoundedCornerShape(Radius.small),
-                            color = Color.White,
+                            color = Surface,
                             shadowElevation = Elevation.small,
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
@@ -739,9 +743,9 @@ fun CreateDonationScreen(
                         singleLine = true,
                         shape = RoundedCornerShape(Radius.small),
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedContainerColor = Color(0xFFF7FAF7),
-                            focusedContainerColor = Color(0xFFF7FAF7),
-                            unfocusedBorderColor = Color(0xFFE5E7EB),
+                            unfocusedContainerColor = SurfaceMuted,
+                            focusedContainerColor = SurfaceMuted,
+                            unfocusedBorderColor = BorderSubtle,
                             focusedBorderColor = PrimaryMain
                         )
                     )

@@ -1,76 +1,80 @@
 package com.example.wasteco.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.CompositionLocalProvider
 
-private val LightColorScheme = lightColorScheme(
-    primary = PrimaryMain,
-    onPrimary = Color.White,
-    primaryContainer = PrimaryContainer,
-    onPrimaryContainer = PrimaryDarker,
-
-    secondary = SecondaryMain,
-    onSecondary = Color.White,
-    secondaryContainer = SecondaryContainer,
-    onSecondaryContainer = SecondaryDark,
-
-    background = Background,
-    onBackground = TextPrimary,
-
-    surface = Surface,
-    onSurface = TextPrimary,
-    surfaceVariant = SurfaceVariant,
-    onSurfaceVariant = TextSecondary,
-
-    outline = Outline,
-    outlineVariant = OutlineVariant,
-
-    error = ErrorRed,
-    onError = Color.White,
-    errorContainer = ErrorContainer,
-    onErrorContainer = ErrorRed
+private fun WasteCoPalette.toLightScheme(): ColorScheme = lightColorScheme(
+    primary = primaryMain,
+    onPrimary = OnSolid,
+    primaryContainer = primaryContainer,
+    onPrimaryContainer = primaryDarker,
+    secondary = secondaryMain,
+    onSecondary = OnSolid,
+    secondaryContainer = secondaryContainer,
+    onSecondaryContainer = secondaryDark,
+    background = background,
+    onBackground = textPrimary,
+    surface = surface,
+    onSurface = textPrimary,
+    surfaceVariant = surfaceVariant,
+    onSurfaceVariant = textSecondary,
+    outline = outline,
+    outlineVariant = outlineVariant,
+    error = errorRed,
+    onError = OnSolid,
+    errorContainer = errorContainer,
+    onErrorContainer = errorRed
 )
 
-private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryMain,
-    onPrimary = Color.White,
-    primaryContainer = PrimaryDark,
-    onPrimaryContainer = PrimaryLight,
-
-    secondary = SecondaryMain,
-    onSecondary = Color.White,
-    secondaryContainer = SecondaryDark,
-    onSecondaryContainer = SecondaryLight,
-
-    background = Color(0xFF14131B),
-    onBackground = Color(0xFFF7F7FC),
-
-    surface = Color(0xFF1E1D27),
-    onSurface = Color(0xFFF7F7FC),
-    surfaceVariant = Color(0xFF282733),
-    onSurfaceVariant = Color(0xFFA0A3BD),
-
-    outline = Color(0xFF3F3E4D),
-    outlineVariant = Color(0xFF2E2D3A),
-
-    error = ErrorRed,
-    onError = Color.White
+private fun WasteCoPalette.toDarkScheme(): ColorScheme = darkColorScheme(
+    primary = primaryMain,
+    onPrimary = OnSolid,
+    primaryContainer = primaryContainer,
+    onPrimaryContainer = primaryDarker,
+    secondary = secondaryMain,
+    onSecondary = OnSolid,
+    secondaryContainer = secondaryContainer,
+    onSecondaryContainer = secondaryDark,
+    background = background,
+    onBackground = textPrimary,
+    surface = surface,
+    onSurface = textPrimary,
+    surfaceVariant = surfaceVariant,
+    onSurfaceVariant = textSecondary,
+    surfaceContainerLowest = background,
+    surfaceContainerLow = surface,
+    surfaceContainer = surface,
+    surfaceContainerHigh = surfaceVariant,
+    surfaceContainerHighest = surfaceVariant,
+    outline = outline,
+    outlineVariant = outlineVariant,
+    error = errorRed,
+    onError = background,
+    errorContainer = errorContainer,
+    onErrorContainer = errorRed
 )
+
+private val LightColorScheme = LightPalette.toLightScheme()
+private val DarkColorScheme = DarkPalette.toDarkScheme()
 
 @Composable
 fun WasteCoTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
+    val palette = if (darkTheme) DarkPalette else LightPalette
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(LocalWasteCoPalette provides palette) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }

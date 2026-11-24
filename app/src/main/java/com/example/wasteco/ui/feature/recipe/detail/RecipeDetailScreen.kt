@@ -58,6 +58,14 @@ import com.example.wasteco.ui.theme.PrimaryMain
 import com.example.wasteco.ui.theme.Radius
 import com.example.wasteco.ui.theme.Spacing
 import com.example.wasteco.ui.theme.WasteCoTheme
+import com.example.wasteco.ui.theme.BorderSubtle
+import com.example.wasteco.ui.theme.BrandSolid
+import com.example.wasteco.ui.theme.ImageScrimStrong
+import com.example.wasteco.ui.theme.Outline
+import com.example.wasteco.ui.theme.SuccessTint
+import com.example.wasteco.ui.theme.SurfaceMuted
+import com.example.wasteco.ui.theme.SurfaceSubtle
+import com.example.wasteco.ui.theme.TextSecondary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -166,7 +174,7 @@ fun RecipeDetailScreen(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(Color(0xDD1E1E1E))
+                                .background(ImageScrimStrong)
                                 .padding(horizontal = 10.dp, vertical = 5.dp)
                         ) {
                             Row(
@@ -192,7 +200,7 @@ fun RecipeDetailScreen(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(Color(0xFF2E6B31))
+                                .background(BrandSolid)
                                 .padding(horizontal = 10.dp, vertical = 5.dp)
                         ) {
                             Text(
@@ -230,7 +238,7 @@ fun RecipeDetailScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .clip(RoundedCornerShape(Radius.small))
-                                .background(Color(0xFFF0F4F0))
+                                .background(SurfaceSubtle)
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             Icon(
@@ -257,7 +265,7 @@ fun RecipeDetailScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .clip(RoundedCornerShape(Radius.small))
-                                .background(Color(0xFFF0F4F0))
+                                .background(SurfaceSubtle)
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             Icon(
@@ -292,7 +300,7 @@ fun RecipeDetailScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium)),
+                            .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium)),
                         shape = RoundedCornerShape(Radius.medium),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         elevation = CardDefaults.cardElevation(defaultElevation = Elevation.none)
@@ -326,7 +334,7 @@ fun RecipeDetailScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(Radius.small))
-                                        .background(Color(0xFFF3F7F2))
+                                        .background(SurfaceSubtle)
                                         .padding(horizontal = Spacing.medium, vertical = Spacing.compact),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
@@ -379,7 +387,7 @@ fun RecipeDetailScreen(
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium)),
+                                .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium)),
                             shape = RoundedCornerShape(Radius.medium),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                             elevation = CardDefaults.cardElevation(defaultElevation = Elevation.none)
@@ -401,7 +409,7 @@ fun RecipeDetailScreen(
                                             modifier = Modifier
                                                 .size(8.dp)
                                                 .clip(CircleShape)
-                                                .background(Color(0xFF6B7280))
+                                                .background(TextSecondary)
                                         )
                                         Spacer(modifier = Modifier.width(Spacing.compact))
                                         Text(
@@ -415,7 +423,7 @@ fun RecipeDetailScreen(
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(12.dp))
-                                            .background(Color(0xFFF1F4F1))
+                                            .background(SurfaceSubtle)
                                             .padding(horizontal = 8.dp, vertical = 2.dp)
                                     ) {
                                         Text(
@@ -437,7 +445,7 @@ fun RecipeDetailScreen(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clip(RoundedCornerShape(Radius.small))
-                                            .background(Color(0xFFF7F8F7))
+                                            .background(SurfaceMuted)
                                             .padding(horizontal = Spacing.medium, vertical = Spacing.compact),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.SpaceBetween
@@ -450,7 +458,7 @@ fun RecipeDetailScreen(
                                                 modifier = Modifier
                                                     .size(20.dp)
                                                     .clip(CircleShape)
-                                                    .background(Color(0xFFD1D5DB)),
+                                                    .background(Outline),
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 Icon(
@@ -499,7 +507,7 @@ fun RecipeDetailScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = Spacing.xxs)
-                                    .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium)),
+                                    .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium)),
                                 shape = RoundedCornerShape(Radius.medium),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                                 elevation = CardDefaults.cardElevation(defaultElevation = Elevation.none)
@@ -514,7 +522,7 @@ fun RecipeDetailScreen(
                                         modifier = Modifier
                                             .size(28.dp)
                                             .clip(CircleShape)
-                                            .background(Color(0xFFE8F5E9)),
+                                            .background(SuccessTint),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(

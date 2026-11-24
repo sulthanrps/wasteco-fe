@@ -103,6 +103,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import com.example.wasteco.ui.theme.BorderSubtle
+import com.example.wasteco.ui.theme.BrandSolid
+import com.example.wasteco.ui.theme.InfoBlue
+import com.example.wasteco.ui.theme.SecondaryMain
+import com.example.wasteco.ui.theme.SuccessTint
+import com.example.wasteco.ui.theme.SurfaceMuted
+import com.example.wasteco.ui.theme.WarningTint
+import com.example.wasteco.ui.theme.Surface
 
 private fun formatPinsJson(donations: List<Donation>): String =
     JSONArray().apply {
@@ -542,7 +550,7 @@ fun DonationMapScreen(
                             .padding(end = Spacing.medium)
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(PrimaryDarker)
+                            .background(BrandSolid)
                             .clickable { onProfileClick() },
                         contentAlignment = Alignment.Center
                     ) {
@@ -698,8 +706,8 @@ fun DonationMapScreen(
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(Radius.medium))
-                            .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium))
-                            .background(Color.White)
+                            .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium))
+                            .background(Surface)
                             .padding(2.dp)
                     ) {
                         IconButton(onClick = onListViewClick, modifier = Modifier.size(32.dp)) {
@@ -732,7 +740,7 @@ fun DonationMapScreen(
                 // My Location Button
                 Surface(
                     shape = RoundedCornerShape(Radius.small),
-                    color = Color.White,
+                    color = Surface,
                     shadowElevation = Elevation.small,
                     modifier = Modifier
                         .size(40.dp)
@@ -785,7 +793,7 @@ fun DonationMapScreen(
                 // Zoom In / Out Controls
                 Surface(
                     shape = RoundedCornerShape(Radius.small),
-                    color = Color.White,
+                    color = Surface,
                     shadowElevation = Elevation.small,
                     modifier = Modifier.clip(RoundedCornerShape(Radius.small))
                 ) {
@@ -805,7 +813,7 @@ fun DonationMapScreen(
                             modifier = Modifier
                                 .width(40.dp)
                                 .height(1.dp)
-                                .background(Color(0xFFE5E7EB))
+                                .background(BorderSubtle)
                         )
                         IconButton(
                             onClick = { webViewRef?.evaluateJavascript("window.zoomOutMap();", null) },
@@ -829,7 +837,7 @@ fun DonationMapScreen(
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter)
                         .padding(horizontal = Spacing.large, vertical = Spacing.medium)
-                        .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium)),
+                        .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium)),
                     shape = RoundedCornerShape(Radius.medium),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = Elevation.medium)
@@ -856,7 +864,7 @@ fun DonationMapScreen(
                                     modifier = Modifier
                                         .padding(4.dp)
                                         .clip(RoundedCornerShape(4.dp))
-                                        .background(PrimaryDarker)
+                                        .background(BrandSolid)
                                         .padding(horizontal = 4.dp, vertical = 2.dp)
                                 ) {
                                     Text(
@@ -900,7 +908,7 @@ fun DonationMapScreen(
                                     Icon(
                                         imageVector = Icons.Default.CheckCircle,
                                         contentDescription = "Verified",
-                                        tint = Color(0xFF1976D2),
+                                        tint = InfoBlue,
                                         modifier = Modifier.size(13.dp)
                                     )
                                 }
@@ -929,7 +937,7 @@ fun DonationMapScreen(
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(Color(0xFFFFF3E0))
+                                        .background(WarningTint)
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Row(
@@ -939,14 +947,14 @@ fun DonationMapScreen(
                                         Icon(
                                             imageVector = Icons.Default.Schedule,
                                             contentDescription = null,
-                                            tint = Color(0xFFE87A24),
+                                            tint = SecondaryMain,
                                             modifier = Modifier.size(10.dp)
                                         )
                                         Text(
                                             text = selectedDonation.createdTimeAgo,
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Medium,
-                                            color = Color(0xFFE87A24)
+                                            color = SecondaryMain
                                         )
                                     }
                                 }
@@ -965,7 +973,7 @@ fun DonationMapScreen(
                                 onClick = { onDonationDetailClick(selectedDonation.id) },
                                 shape = RoundedCornerShape(Radius.medium),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = PrimaryDarker,
+                                    containerColor = BrandSolid,
                                     contentColor = Color.White
                                 ),
                                 modifier = Modifier
@@ -988,7 +996,7 @@ fun DonationMapScreen(
                             // Directions Button: Launches Google Maps intent
                             Surface(
                                 shape = RoundedCornerShape(Radius.medium),
-                                color = Color(0xFFE8F5E9),
+                                color = SuccessTint,
                                 modifier = Modifier
                                     .size(44.dp)
                                     .clip(RoundedCornerShape(Radius.medium))
@@ -1209,7 +1217,7 @@ private fun LocationPickerBottomSheet(
             // Option 1: Live GPS
             Surface(
                 shape = RoundedCornerShape(Radius.medium),
-                color = Color(0xFFE8F5E9),
+                color = SuccessTint,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(Radius.medium))
@@ -1274,7 +1282,7 @@ private fun LocationPickerBottomSheet(
                     val isSelected = currentAddress.contains(preset.name, ignoreCase = true)
                     Surface(
                         shape = RoundedCornerShape(Radius.medium),
-                        color = if (isSelected) Color(0xFFF1F8F1) else Color.Transparent,
+                        color = if (isSelected) SurfaceMuted else Color.Transparent,
                         border = if (isSelected) androidx.compose.foundation.BorderStroke(1.5.dp, PrimaryMain) else null,
                         modifier = Modifier
                             .fillMaxWidth()
