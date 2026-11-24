@@ -21,9 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.outlined.Handshake
-import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.SoupKitchen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -50,7 +47,6 @@ import com.example.wasteco.ui.theme.EntryDimens
 import com.example.wasteco.ui.theme.EntryTypography
 import com.example.wasteco.ui.theme.Radius
 import com.example.wasteco.ui.theme.Spacing
-import com.example.wasteco.ui.theme.TextInverse
 import com.example.wasteco.ui.theme.WasteCoTheme
 
 @Composable
@@ -80,18 +76,6 @@ fun OnboardingScreen(
                     modifier = Modifier.matchParentSize(),
                     contentScale = ContentScale.Crop
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth().align(Alignment.BottomStart)
-                        .background(Brush.verticalGradient(listOf(Color.Transparent, EntryColors.heroOverlay)))
-                        .padding(Spacing.medium),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
-                ) {
-                    Icon(Icons.Filled.Eco, contentDescription = null,
-                        modifier = Modifier.size(EntryDimens.buttonIcon), tint = TextInverse)
-                    Text(stringResource(R.string.onboarding_hero_caption),
-                        style = MaterialTheme.typography.bodySmall, color = TextInverse)
-                }
             }
             Spacer(Modifier.height(Spacing.medium))
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.compact)) {
@@ -103,17 +87,13 @@ fun OnboardingScreen(
                     Icons.Outlined.Handshake, EntryColors.orangeTint, EntryColors.orangeInk,
                     stringResource(R.string.onboarding_donations), stringResource(R.string.onboarding_donations_description)
                 )
-                OnboardingFeature(
-                    Icons.Outlined.Savings, EntryColors.oliveTint, EntryColors.action,
-                    stringResource(R.string.onboarding_stats), stringResource(R.string.onboarding_stats_description)
-                )
             }
             Spacer(Modifier.height(EntryDimens.gutter))
             WasteCoPrimaryButton(
                 text = stringResource(R.string.onboarding_get_started),
                 onClick = onGetStartedClick,
                 trailingIcon = Icons.AutoMirrored.Filled.ArrowForward,
-                containerColor = EntryColors.action,
+                containerColor = EntryColors.actionSolid,
                 cornerRadius = Radius.medium,
                 iconSize = EntryDimens.buttonIcon
             )

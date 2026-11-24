@@ -375,7 +375,7 @@ private fun ProfileEditCard(
             WasteCoPrimaryButton(
                 text = stringResource(R.string.profile_save), onClick = onSave,
                 enabled = !isLocating, isLoading = isSaving,
-                containerColor = EntryColors.action, cornerRadius = Radius.medium
+                containerColor = EntryColors.actionSolid, cornerRadius = Radius.medium
             )
         }
     }

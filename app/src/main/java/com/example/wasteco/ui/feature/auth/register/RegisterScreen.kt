@@ -204,7 +204,7 @@ fun RegisterScreen(
                         Checkbox(
                             checked = uiState.isAgreementChecked,
                             onCheckedChange = null,
-                            colors = CheckboxDefaults.colors(checkedColor = EntryColors.action)
+                            colors = CheckboxDefaults.colors(checkedColor = EntryColors.actionSolid)
                         )
                         val agreementStart = stringResource(R.string.auth_agreement_start)
                         val agreementEmphasis = stringResource(R.string.auth_agreement_emphasis)
@@ -235,7 +235,7 @@ fun RegisterScreen(
                 enabled = uiState.isFormValid && !uiState.isLocating,
                 isLoading = uiState.isLoading,
                 trailingIcon = Icons.AutoMirrored.Filled.ArrowForward,
-                containerColor = EntryColors.action,
+                containerColor = EntryColors.actionSolid,
                 cornerRadius = Radius.medium,
                 iconSize = EntryDimens.buttonIcon
             )

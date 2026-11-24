@@ -68,6 +68,12 @@ import com.example.wasteco.ui.theme.Radius
 import com.example.wasteco.ui.theme.SecondaryMain
 import com.example.wasteco.ui.theme.Spacing
 import com.example.wasteco.ui.theme.WasteCoTheme
+import com.example.wasteco.ui.theme.BorderSubtle
+import com.example.wasteco.ui.theme.ErrorContainer
+import com.example.wasteco.ui.theme.SuccessTint
+import com.example.wasteco.ui.theme.SurfaceSubtle
+import com.example.wasteco.ui.theme.WarningTint
+import com.example.wasteco.ui.theme.Surface
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -221,7 +227,7 @@ fun CookConfirmScreen(
                         modifier = Modifier
                             .size(52.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFE8F5E9)),
+                            .background(SuccessTint),
                         contentAlignment = Alignment.Center
                     ) {
                         Box(
@@ -275,7 +281,7 @@ fun CookConfirmScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium)),
+                        .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium)),
                     shape = RoundedCornerShape(Radius.medium),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = Elevation.none)
@@ -301,7 +307,7 @@ fun CookConfirmScreen(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0xFFE8F5E9))
+                                    .background(SuccessTint)
                                     .padding(horizontal = 8.dp, vertical = 2.dp)
                             ) {
                                 Row(
@@ -367,7 +373,7 @@ fun CookConfirmScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = Spacing.xxs)
-                            .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium)),
+                            .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium)),
                         shape = RoundedCornerShape(Radius.medium),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         elevation = CardDefaults.cardElevation(defaultElevation = Elevation.none)
@@ -422,7 +428,7 @@ fun CookConfirmScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(Radius.medium)),
+                        .border(1.dp, BorderSubtle, RoundedCornerShape(Radius.medium)),
                     shape = RoundedCornerShape(Radius.medium),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = Elevation.none)
@@ -439,7 +445,7 @@ fun CookConfirmScreen(
                                 modifier = Modifier
                                     .size(36.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFFE8F5E9)),
+                                    .background(SuccessTint),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -491,7 +497,7 @@ private fun StepperPill(
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFFF1F4F1))
+            .background(SurfaceSubtle)
             .padding(horizontal = 4.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -500,7 +506,7 @@ private fun StepperPill(
             modifier = Modifier
                 .size(28.dp)
                 .clip(CircleShape)
-                .background(Color.White)
+                .background(Surface)
                 .clickable { onMinus() },
             contentAlignment = Alignment.Center
         ) {
@@ -525,7 +531,7 @@ private fun StepperPill(
             modifier = Modifier
                 .size(28.dp)
                 .clip(CircleShape)
-                .background(Color.White)
+                .background(Surface)
                 .clickable { onPlus() },
             contentAlignment = Alignment.Center
         ) {
@@ -549,22 +555,24 @@ private fun getIngredientIcon(name: String): ImageVector {
     }
 }
 
+@Composable
 private fun getIngredientBgColor(name: String): Color {
     val lower = name.lowercase()
     return when {
-        "nasi" in lower -> Color(0xFFE8F5E9)
-        "telur" in lower -> Color(0xFFFFF3E0)
-        "wortel" in lower -> Color(0xFFFFEBE5)
-        else -> Color(0xFFF1F4F1)
+        "nasi" in lower -> SuccessTint
+        "telur" in lower -> WarningTint
+        "wortel" in lower -> ErrorContainer
+        else -> SurfaceSubtle
     }
 }
 
+@Composable
 private fun getIngredientTint(name: String): Color {
     val lower = name.lowercase()
     return when {
         "nasi" in lower -> PrimaryMain
         "telur" in lower -> SecondaryMain
-        "wortel" in lower -> Color(0xFFE87A24)
+        "wortel" in lower -> SecondaryMain
         else -> PrimaryMain
     }
 }

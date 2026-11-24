@@ -64,6 +64,9 @@ import com.example.wasteco.ui.theme.Radius
 import com.example.wasteco.ui.theme.SecondaryDark
 import com.example.wasteco.ui.theme.Spacing
 import com.example.wasteco.ui.theme.WasteCoTheme
+import com.example.wasteco.ui.theme.BrandSolid
+import com.example.wasteco.ui.theme.SecondarySolid
+import com.example.wasteco.ui.theme.Surface
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -226,7 +229,7 @@ fun SmartRecipeFigmaCard(
                     modifier = Modifier
                         .padding(Spacing.medium)
                         .clip(RoundedCornerShape(Radius.full))
-                        .background(Color.White.copy(alpha = 0.9f))
+                        .background(Surface.copy(alpha = 0.9f))
                         .padding(horizontal = Spacing.compact, vertical = Spacing.xs)
                         .align(Alignment.TopStart)
                 ) {
@@ -235,7 +238,7 @@ fun SmartRecipeFigmaCard(
                             modifier = Modifier
                                 .size(16.dp)
                                 .clip(CircleShape)
-                                .background(if (isTopMatch) PrimaryDarker else SecondaryDark),
+                                .background(if (isTopMatch) BrandSolid else SecondarySolid),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -380,7 +383,7 @@ fun SmartRecipeFigmaCard(
                     onClick = onClick,
                     shape = RoundedCornerShape(Radius.medium),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isTopMatch) PrimaryDarker else PrimaryContainer,
+                        containerColor = if (isTopMatch) BrandSolid else PrimaryContainer,
                         contentColor = if (isTopMatch) Color.White else PrimaryDarker
                     ),
                     modifier = Modifier

@@ -78,6 +78,7 @@ import com.example.wasteco.ui.theme.PrimaryMain
 import com.example.wasteco.ui.theme.Radius
 import com.example.wasteco.ui.theme.Spacing
 import com.example.wasteco.ui.theme.WasteCoTheme
+import com.example.wasteco.ui.theme.BrandSolid
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -131,7 +132,7 @@ fun PantryScreen(
                             .padding(end = Spacing.small)
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(PrimaryDarker)
+                            .background(BrandSolid)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Person,
@@ -149,7 +150,7 @@ fun PantryScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onCameraClick,
-                containerColor = PrimaryDarker,
+                containerColor = BrandSolid,
                 contentColor = Color.White,
                 shape = CircleShape,
                 modifier = Modifier.padding(bottom = if (uiState.items.isNotEmpty()) 60.dp else 0.dp)
@@ -180,7 +181,7 @@ fun PantryScreen(
                                 .height(50.dp),
                             shape = RoundedCornerShape(Radius.large),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = PrimaryDarker,
+                                containerColor = BrandSolid,
                                 contentColor = Color.White
                             )
                         ) {
@@ -234,7 +235,7 @@ fun PantryScreen(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(CircleShape)
-                                .background(PrimaryDarker),
+                                .background(BrandSolid),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -356,7 +357,7 @@ fun PantryScreen(
                             onClick = onCameraClick,
                             shape = RoundedCornerShape(Radius.medium),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = PrimaryDarker,
+                                containerColor = BrandSolid,
                                 contentColor = Color.White
                             ),
                             modifier = Modifier
